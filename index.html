@@ -1,0 +1,1705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Apple Silicon to E2 Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, rgb(20, 35, 70), rgb(35, 55, 100));
+            min-height: 100vh;
+            color: white;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Navigation Bar */
+        .nav-bar {
+            background-color: rgb(20, 35, 70);
+            padding: 15px 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: white;
+        }
+
+        /* Card Styling */
+        .card {
+            background: rgba(40, 60, 105, 0.5);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-results {
+            border: 1px solid rgba(0, 200, 100, 0.3);
+            box-shadow: 0 8px 16px rgba(0, 200, 100, 0.2);
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.7);
+            padding: 0 4px 12px 4px;
+        }
+
+        /* Row Styling */
+        .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin-bottom: 2px;
+        }
+
+        .row-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            color: white;
+        }
+
+        .row-label .icon {
+            font-size: 14px;
+            color: #4ade80;
+        }
+
+        /* Select/Dropdown Styling */
+        select {
+            background: transparent;
+            border: none;
+            color: #4ade80;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 5px 10px;
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234ade80' d='M6 8L2 4h8z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 5px center;
+            padding-right: 25px;
+        }
+
+        select option {
+            background: rgb(40, 60, 105);
+            color: white;
+        }
+
+        /* Toggle Switch */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toggle {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            cursor: pointer;
+        }
+
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 24px;
+            transition: 0.3s;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .toggle input:checked + .toggle-slider {
+            background-color: #4ade80;
+        }
+
+        .toggle input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+
+        .toggle input:disabled + .toggle-slider {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Help Button */
+        .help-btn {
+            background: none;
+            border: none;
+            color: rgba(59, 130, 246, 0.8);
+            font-size: 16px;
+            cursor: pointer;
+            padding: 0;
+            margin-left: 4px;
+        }
+
+        .help-btn:hover {
+            color: rgba(59, 130, 246, 1);
+        }
+
+        /* Warning Text */
+        .warning-text {
+            font-size: 11px;
+            color: #f97316;
+            padding-left: 28px;
+            margin-top: 4px;
+        }
+
+        /* Divider */
+        .divider {
+            height: 1px;
+            background: rgba(128, 128, 128, 0.5);
+            margin: 20px 0;
+        }
+
+        .card-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.2);
+            margin: 12px 0;
+        }
+
+        /* Configuration Limits */
+        .limit-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+        }
+
+        .limit-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .limit-label .icon {
+            font-size: 14px;
+            color: #4ade80;
+        }
+
+        .limit-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #4ade80;
+        }
+
+        /* Input Fields */
+        input[type="text"],
+        input[type="number"] {
+            background: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 15px;
+            color: #333;
+            width: 150px;
+            text-align: right;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #4ade80;
+        }
+
+        .input-small {
+            width: 80px;
+        }
+
+        /* Calculate Button */
+        .calculate-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(90deg, rgb(50, 100, 200), rgb(70, 130, 220));
+            border: none;
+            border-radius: 16px;
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 7px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .calculate-btn:active {
+            transform: translateY(0);
+        }
+
+        .calculate-btn-subtitle {
+            font-size: 11px;
+            font-weight: 400;
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+
+        /* Results Section */
+        .result-main {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+        }
+
+        .result-label {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .result-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .result-value-main {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .result-value-success {
+            color: #4ade80;
+        }
+
+        /* EDID Timings Button */
+        .edid-btn {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(90deg, rgb(60, 120, 180), rgb(80, 140, 200));
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .edid-btn:hover {
+            opacity: 0.9;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 10px 0;
+            font-size: 12px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .disclaimer {
+            text-align: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: rgb(200, 100, 100);
+            padding: 10px 0 20px 0;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: linear-gradient(135deg, rgb(20, 35, 70), rgb(35, 55, 100));
+            border-radius: 16px;
+            padding: 20px;
+            max-width: 90%;
+            max-height: 90%;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 28px;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .modal-subtitle {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .timing-section {
+            margin-bottom: 20px;
+        }
+
+        .timing-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .timing-row {
+            display: flex;
+            padding: 4px 0;
+        }
+
+        .timing-label {
+            width: 120px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .timing-value {
+            font-size: 14px;
+            font-weight: 600;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+        }
+
+        /* Alert Modal */
+        .alert-modal {
+            background: rgb(40, 60, 105);
+            border-radius: 14px;
+            padding: 20px;
+            max-width: 300px;
+            text-align: center;
+        }
+
+        .alert-title {
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .alert-message {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        .alert-btn {
+            background: rgba(59, 130, 246, 0.8);
+            border: none;
+            border-radius: 8px;
+            padding: 10px 30px;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Blink Effect */
+        .blink-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 999;
+            transition: opacity 0.1s ease-in-out;
+        }
+
+        .blink-overlay.active {
+            opacity: 0.2;
+        }
+
+        /* Hidden class */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+
+            .nav-title {
+                font-size: 17px;
+            }
+
+            input[type="text"],
+            input[type="number"] {
+                width: 120px;
+            }
+
+            .row-label {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Blink Effect Overlay -->
+    <div id="blinkOverlay" class="blink-overlay"></div>
+
+    <!-- Navigation Bar -->
+    <div class="nav-bar">
+        <div class="nav-title">Apple Silicon to E2 Calculator</div>
+    </div>
+
+    <div class="container">
+        <!-- System Configuration Section -->
+        <div class="section-title">SYSTEM CONFIGURATION</div>
+        <div class="card">
+            <!-- Connector -->
+            <div class="row">
+                <div class="row-label">
+                    <span class="icon">&#128268;</span>
+                    Connector
+                </div>
+                <select id="connector" onchange="onConnectorChange()">
+                    <option value="HDMI 2.0">HDMI 2.0</option>
+                    <option value="DP 1.2" selected>DP 1.2</option>
+                </select>
+            </div>
+
+            <!-- Computer Model -->
+            <div class="row">
+                <div class="row-label">Computer Model:</div>
+                <select id="computer" onchange="onComputerChange()">
+                    <option value="MacBookPro" selected>MacBookPro</option>
+                    <option value="MacStudio">MacStudio</option>
+                    <option value="MacPro">MacPro</option>
+                    <option value="MacMini">MacMini</option>
+                </select>
+            </div>
+
+            <!-- M-Series Chip -->
+            <div class="row">
+                <div class="row-label">M-Series Chip:</div>
+                <select id="processor" onchange="onProcessorChange()">
+                    <!-- Options populated by JavaScript -->
+                </select>
+            </div>
+
+            <!-- macOS -->
+            <div class="row">
+                <div class="row-label">MacOS:</div>
+                <select id="macos" onchange="onMacOSChange()">
+                    <!-- Options populated by JavaScript -->
+                </select>
+            </div>
+
+            <!-- Connector Capacity -->
+            <div class="row">
+                <div class="row-label">Connector Capacity:</div>
+                <select id="capacity" onchange="onCapacityChange()">
+                    <option value="SL">SL</option>
+                    <option value="DL">DL</option>
+                    <option value="4K" selected>4K</option>
+                </select>
+            </div>
+
+            <!-- Better Display -->
+            <div class="row" style="flex-direction: column; align-items: stretch;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div class="row-label">
+                        <span class="icon">&#128421;</span>
+                        Better Display
+                        <button class="help-btn" onclick="showAlert('Better Display', 'Better Display is a Mac app similar to SwitchResX that allows you to load custom EDID files. You can use this software to increase the maximum display resolution of macs with custom created EDID files. Better Display has no positive impact on any M1 series processor and is disabled as an option when M1s are selected.')">&#9432;</button>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" id="betterDisplay" onchange="onBetterDisplayChange()">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div id="betterDisplayWarning" class="warning-text hidden">Won't boost resolution for M1 chips</div>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Configuration Limits Section -->
+        <div class="section-title">CONFIGURATION LIMITS</div>
+        <div class="card">
+            <div class="limit-row">
+                <div class="limit-label">
+                    <span class="icon">&#8596;</span>
+                    Max Horizontal
+                    <button class="help-btn" onclick="showAlert('Max Horizontal Resolution', 'Maximum horizontal resolution you will be able to get out of the computer based on the specs selected above. Connector, Computer Model, M-Chip, OS, Connector capacity & Better Display all impact the maximum Horizontal resolution allowed.')">&#9432;</button>
+                </div>
+                <div class="limit-value" id="maxHorizontal">6144</div>
+            </div>
+            <div class="card-divider"></div>
+            <div class="limit-row">
+                <div class="limit-label">
+                    <span class="icon">&#9201;</span>
+                    Pixel Clock
+                </div>
+                <div class="limit-value" id="maxPixelClock">660 MHz</div>
+            </div>
+            <div class="card-divider"></div>
+            <div class="limit-row">
+                <div class="limit-label">
+                    <span class="icon">&#128250;</span>
+                    Max Displays
+                </div>
+                <div class="limit-value" id="maxDisplays">1</div>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Resolution Calculator Section -->
+        <div class="section-title">RESOLUTION CALCULATOR</div>
+        <div class="card">
+            <!-- Display Width -->
+            <div class="row" style="background: transparent; padding: 2px 12px;">
+                <div class="row-label">Display Width:</div>
+                <input type="number" id="displayWidth" placeholder="Enter Width" oninput="clearResults()">
+            </div>
+
+            <!-- Display Height -->
+            <div class="row" style="background: transparent; padding: 10px 12px;">
+                <div class="row-label">Display Height:</div>
+                <input type="number" id="displayHeight" placeholder="Enter Height" oninput="clearResults()">
+            </div>
+
+            <!-- Frame Rate -->
+            <div class="row">
+                <div class="row-label">Frame Rate:</div>
+                <select id="frameRate" onchange="clearResults()">
+                    <option value="23.98">23.98</option>
+                    <option value="24">24</option>
+                    <option value="25">25</option>
+                    <option value="29.97">29.97</option>
+                    <option value="30">30</option>
+                    <option value="50">50</option>
+                    <option value="59.94" selected>59.94</option>
+                    <option value="60">60</option>
+                </select>
+            </div>
+
+            <!-- Bit Rate -->
+            <div class="row">
+                <div class="row-label">Bit Rate:</div>
+                <select id="bitRate" onchange="onBitRateChange()">
+                    <option value="8 Bit" selected>8 Bit</option>
+                    <option value="10 Bit">10 Bit</option>
+                    <option value="12 Bit">12 Bit</option>
+                </select>
+            </div>
+
+            <!-- Reduced Blanking -->
+            <div class="row">
+                <div class="row-label">Reduced Blanking:</div>
+                <select id="reducedBlanking" onchange="clearResults()">
+                    <option value="RB V1">RB V1</option>
+                    <option value="RB V2" selected>RB V2</option>
+                </select>
+            </div>
+
+            <!-- Dual DP 1.2 -->
+            <div class="row">
+                <div class="row-label">
+                    Dual DP 1.2 (DisplayID Block On)
+                    <button class="help-btn" onclick="showAlert('Dual DP 1.2', 'Turning on Dual DP1.2 mode adjusts calculations to account for the use of two display port cables connected between E2 and Mac with Display ID block turned on allowing E2 to trick the Mac into displaying a single display over the two DP1.2 cables. This will only work if your vertical resolution is larger than your horizontal resolution. This is most useful to gain more vertical resolution on your mac output. Please only turn this on if you understand Dual DP workflow in E2.')">&#9432;</button>
+                </div>
+                <label class="toggle">
+                    <input type="checkbox" id="dualDp" onchange="onDualDpChange()">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <!-- Pixel Density Mode -->
+            <div class="row">
+                <div class="row-label">
+                    Pixel Density Mode
+                    <button class="help-btn" onclick="showAlert('Pixel Density Mode', 'Pixel density mode allows you to set a maximum vertical resolution for calculations. When on, the app will calculate your max resolution to maintain aspect ratio as well as all other pre defined parameters, but will also include the max V parameter. This is useful if you have displays with different pixel density and want to limit the resolution of a larger density wall to match the pixel density of the lower resolution display.')">&#9432;</button>
+                </div>
+                <div class="toggle-container">
+                    <input type="number" id="maxVertical" placeholder="Max V" class="input-small hidden" oninput="clearResults()">
+                    <label class="toggle">
+                        <input type="checkbox" id="pixelDensityMode" onchange="onPixelDensityModeChange()">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calculate Button -->
+        <button class="calculate-btn" onclick="calculate()">
+            CALCULATE
+            <div class="calculate-btn-subtitle">Tap to compute scaled resolution</div>
+        </button>
+
+        <!-- Results Section -->
+        <div id="resultsSection" class="hidden" style="margin-top: 20px;">
+            <div class="section-title">RESULTS</div>
+            <div class="card card-results">
+                <!-- Main Result -->
+                <div class="result-main">
+                    <div class="result-row">
+                        <div class="result-label" style="font-size: 16px;">Scaled Resolution:</div>
+                        <div id="scaledResolution" class="result-value result-value-main"></div>
+                    </div>
+                    <div id="resolutionPerCableRow" class="result-row hidden">
+                        <div class="result-label">Resolution Per Cable:</div>
+                        <div id="resolutionPerCable" class="result-value"></div>
+                    </div>
+                </div>
+
+                <!-- Other Results -->
+                <div class="result-row">
+                    <div class="result-label" id="clockLabel">Pixel Clock:</div>
+                    <div id="pixelClockResult" class="result-value"></div>
+                </div>
+                <div class="result-row">
+                    <div class="result-label">Original Aspect:</div>
+                    <div id="originalAspect" class="result-value"></div>
+                </div>
+                <div class="result-row">
+                    <div class="result-label">Scaled Aspect:</div>
+                    <div id="scaledAspect" class="result-value"></div>
+                </div>
+                <div class="result-row">
+                    <div class="result-label">Keynote Canvas:</div>
+                    <div id="keynoteCanvas" class="result-value"></div>
+                </div>
+                <div class="result-row">
+                    <div class="result-label">PPT Canvas (72dpi):</div>
+                    <div id="pptCanvas" class="result-value"></div>
+                </div>
+
+                <!-- EDID Timings Button -->
+                <button id="edidBtn" class="edid-btn" onclick="showEDIDTimings()">
+                    <span>&#128269;</span>
+                    SHOW EDID TIMINGS
+                </button>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            By: Phillip Rude<br>
+            Omniconpro.com<br>
+            <span id="versionString">v1.09.04</span>
+        </div>
+
+        <div class="disclaimer">
+            -DISCLAIMER-<br>
+            The data represented in this app should be<br>
+            used as a reference only and should be<br>
+            independently verified before real world use.<br>
+            Trust But Verify!
+        </div>
+    </div>
+
+    <!-- Alert Modal -->
+    <div id="alertModal" class="modal-overlay" onclick="closeAlert(event)">
+        <div class="alert-modal" onclick="event.stopPropagation()">
+            <div id="alertTitle" class="alert-title"></div>
+            <div id="alertMessage" class="alert-message"></div>
+            <button class="alert-btn" onclick="closeAlert()">OK</button>
+        </div>
+    </div>
+
+    <!-- EDID Timings Modal -->
+    <div id="edidModal" class="modal-overlay" onclick="closeEDIDModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="modal-title">EDID TIMINGS</div>
+                <button class="modal-close" onclick="closeEDIDModal()">&times;</button>
+            </div>
+            <div id="edidSubtitle" class="modal-subtitle"></div>
+
+            <div class="card" style="margin-bottom: 0;">
+                <!-- Horizontal Timings -->
+                <div class="timing-section">
+                    <div class="timing-title">HORIZONTAL TIMINGS</div>
+                    <div class="timing-row">
+                        <div class="timing-label">H Total:</div>
+                        <div id="hTotal" class="timing-value"></div>
+                    </div>
+                    <div class="timing-row">
+                        <div class="timing-label">H Front Porch:</div>
+                        <div id="hFrontPorch" class="timing-value"></div>
+                    </div>
+                    <div class="timing-row">
+                        <div class="timing-label">H Active:</div>
+                        <div id="hActive" class="timing-value"></div>
+                    </div>
+                    <div class="timing-row">
+                        <div class="timing-label">H Sync:</div>
+                        <div id="hSync" class="timing-value"></div>
+                    </div>
+                    <div class="timing-row">
+                        <div class="timing-label">H Polarity:</div>
+                        <div id="hPolarity" class="timing-value"></div>
+                    </div>
+                </div>
+
+                <div class="card-divider"></div>
+
+                <!-- Vertical Timings -->
+                <div class="timing-section">
+                    <div class="timing-title">VERTICAL TIMINGS</div>
+                    <div class="timing-row">
+                        <div class="timing-label">V Total:</div>
+                        <div id="vTotal" class="timing-value"></div>
+                    </div>
+                    <div class="timing-row">
+                        <div class="timing-label">V Front Porch:</div>
+                        <div id="vFrontPorch" class="timing-value"></div>
+                    </div>
+                    <div class="timing-row">
+                        <div class="timing-label">V Active:</div>
+                        <div id="vActive" class="timing-value"></div>
+                    </div>
+                    <div class="timing-row">
+                        <div class="timing-label">V Sync:</div>
+                        <div id="vSync" class="timing-value"></div>
+                    </div>
+                    <div class="timing-row">
+                        <div class="timing-label">V Polarity:</div>
+                        <div id="vPolarity" class="timing-value"></div>
+                    </div>
+                    <div class="timing-row">
+                        <div class="timing-label">V Rate:</div>
+                        <div id="vRate" class="timing-value"></div>
+                    </div>
+                </div>
+
+                <div class="card-divider"></div>
+
+                <!-- Pixel Clock -->
+                <div class="timing-section" style="margin-bottom: 0;">
+                    <div class="timing-title">PIXEL CLOCK</div>
+                    <div class="timing-row">
+                        <div class="timing-label">Frequency:</div>
+                        <div id="edidPixelClock" class="timing-value"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // STATE & CONSTANTS
+        // ==========================================
+
+        const connectorOptions = ["HDMI 2.0", "DP 1.2"];
+        const computerOptions = ["MacBookPro", "MacStudio", "MacPro", "MacMini"];
+        const processorOptions = [
+            "M1", "M1 PRO", "M1 MAX", "M1 ULTRA",
+            "M2", "M2 PRO", "M2 MAX", "M2 ULTRA",
+            "M3", "M3 PRO", "M3 MAX", "M3 ULTRA",
+            "M4", "M4 PRO", "M4 MAX",
+            "M5"
+        ];
+        const macOSOptions = ["Monterey", "Ventura", "Sonoma", "Sequoia", "Tahoe"];
+        const capacityOptions = ["SL", "DL", "4K"];
+        const reducedBlankingOptions = ["RB V1", "RB V2"];
+        const frameRateOptions = ["23.98", "24", "25", "29.97", "30", "50", "59.94", "60"];
+        const bitRateOptions = ["8 Bit", "10 Bit", "12 Bit"];
+
+        // Current state
+        let state = {
+            connector: "DP 1.2",
+            computer: "MacBookPro",
+            processor: "M1",
+            macos: "Monterey",
+            capacity: "4K",
+            betterDisplay: false,
+            dualDp: false,
+            pixelDensityMode: false,
+            frameRate: "59.94",
+            bitRate: "8 Bit",
+            reducedBlanking: "RB V2",
+            edidTimings: null
+        };
+
+        // ==========================================
+        // FILTERED OPTIONS
+        // ==========================================
+
+        function getFilteredProcessorOptions() {
+            switch (state.computer) {
+                case "MacBookPro":
+                    return [
+                        "M1", "M1 PRO", "M1 MAX",
+                        "M2", "M2 PRO", "M2 MAX",
+                        "M3", "M3 PRO", "M3 MAX",
+                        "M4", "M4 PRO", "M4 MAX",
+                        "M5"
+                    ];
+                case "MacStudio":
+                    return ["M1 MAX", "M1 ULTRA", "M2 MAX", "M2 ULTRA", "M3 ULTRA", "M4 MAX"];
+                case "MacPro":
+                    return ["M2 ULTRA"];
+                case "MacMini":
+                    return ["M1", "M2", "M2 PRO", "M4", "M4 PRO"];
+                default:
+                    return processorOptions;
+            }
+        }
+
+        function getFilteredMacOSOptions() {
+            if (state.processor.startsWith("M1")) {
+                return macOSOptions;
+            } else if (state.processor.startsWith("M2")) {
+                return macOSOptions.filter(os => os !== "Monterey");
+            } else if (state.processor.startsWith("M3")) {
+                return macOSOptions.filter(os => os !== "Monterey" && os !== "Ventura");
+            } else if (state.processor.startsWith("M4")) {
+                return macOSOptions.filter(os => os === "Sequoia" || os === "Tahoe");
+            } else if (state.processor.startsWith("M5")) {
+                return macOSOptions.filter(os => os === "Tahoe");
+            }
+            return macOSOptions;
+        }
+
+        function getMaxSupportedDisplays() {
+            switch (state.computer) {
+                case "MacBookPro":
+                    switch (state.processor) {
+                        case "M1": return "1";
+                        case "M1 PRO": return "2";
+                        case "M1 MAX": return "4";
+                        case "M2": return "1";
+                        case "M2 PRO": return "2";
+                        case "M2 MAX": return "4";
+                        case "M3": return "2";
+                        case "M3 PRO": return "2";
+                        case "M3 MAX": return "4";
+                        case "M4": return "2";
+                        case "M4 PRO": return "2";
+                        case "M4 MAX": return "4";
+                        case "M5": return "2";
+                        default: return "N/A";
+                    }
+                case "MacPro":
+                    if (state.processor === "M2 ULTRA") {
+                        return "6 (Local +5)";
+                    }
+                    return "N/A";
+                case "MacStudio":
+                    switch (state.processor) {
+                        case "M1 MAX": return "5 (Local +4)";
+                        case "M1 ULTRA": return "5 (Local +4)";
+                        case "M2 MAX": return "5 (Local +4)";
+                        case "M2 ULTRA": return "8 (Local +7)";
+                        case "M3 ULTRA": return "8 (Local +7)";
+                        case "M4 MAX": return "5 (Local +4)";
+                        default: return "N/A";
+                    }
+                case "MacMini":
+                    switch (state.processor) {
+                        case "M1": return "2 (Local +1)";
+                        case "M2": return "2 (Local +1)";
+                        case "M2 PRO": return "3 (Local +2)";
+                        case "M4": return "3 (Local +2)";
+                        case "M4 PRO": return "3 (Local +2)";
+                        default: return "N/A";
+                    }
+                default:
+                    return "N/A";
+            }
+        }
+
+        // ==========================================
+        // CALCULATIONS
+        // ==========================================
+
+        function getBandwidthMultiplier() {
+            let bitsPerComponent;
+            switch (state.bitRate) {
+                case "8 Bit": bitsPerComponent = 8; break;
+                case "10 Bit": bitsPerComponent = 10; break;
+                case "12 Bit": bitsPerComponent = 12; break;
+                default: bitsPerComponent = 8;
+            }
+
+            if (state.connector.startsWith("DP")) {
+                return 1.0;
+            } else {
+                // HDMI TMDS calculations
+                let dc;
+                switch (state.bitRate) {
+                    case "8 Bit": dc = 1.0; break;
+                    case "10 Bit": dc = 1.25; break;
+                    case "12 Bit": dc = 1.5; break;
+                    default: dc = 1.0;
+                }
+                return dc;
+            }
+        }
+
+        function computeMaxPixelClock() {
+            let baseClock;
+
+            let bitsPerComponent;
+            switch (state.bitRate) {
+                case "8 Bit": bitsPerComponent = 8; break;
+                case "10 Bit": bitsPerComponent = 10; break;
+                case "12 Bit": bitsPerComponent = 12; break;
+                default: bitsPerComponent = 8;
+            }
+
+            switch (state.connector) {
+                case "DP 1.2":
+                    // Always use 4:4:4: RGB or YCbCr 4:4:4 = 3 color components
+                    const bitsPerPixel = 3.0 * bitsPerComponent;
+                    // 15.84 Gbps = 15840 Mbps (limited from 17.28 Gbps to achieve 660 MHz at 8-bit)
+                    const baseDataRate = state.dualDp ? 31680.0 : 15840.0;
+                    baseClock = Math.floor(baseDataRate / bitsPerPixel);
+                    break;
+                case "HDMI 2.0":
+                    // HDMI 2.0: 600 MHz TMDS clock limit
+                    baseClock = 600;
+                    break;
+                default:
+                    baseClock = 0;
+            }
+
+            return baseClock;
+        }
+
+        function computePixelClock(width, height, frameRate, blanking) {
+            // For HDMI, use CTA-861 standard timings when available
+            const exact59_94 = 60000.0 / 1001.0;
+            if (state.connector.startsWith("HDMI") && Math.abs(frameRate - exact59_94) < 0.0001) {
+                if (width === 1920 && height === 1080) return 148.5 * 1000.0 / 1001.0;
+                if (width === 3840 && height === 2160) return 594.0 * 1000.0 / 1001.0;
+                if (width === 1280 && height === 720) return 74.25 * 1000.0 / 1001.0;
+                if (width === 2560 && height === 1440) return 241.5;
+            }
+
+            if (blanking === "RB V2") {
+                // CVT-RB v2: Fixed blanking of 80px horizontal, 30 lines vertical
+                const hTotal = width + 80.0;
+                const vTotal = height + 30.0;
+                const pixelClockMHz = hTotal * vTotal * frameRate / 1000000.0;
+                return Math.round(pixelClockMHz * 1000.0) / 1000.0;
+            } else {
+                // CVT-RB v1: Use traditional CVT calculation with 460μs VBI
+                const hActive = width;
+                const vActive = height;
+                const refresh = frameRate;
+
+                const tVBI = 460.0;
+                const hPeriodEstimate = (1000000.0 / refresh - tVBI) / vActive;
+                const vBlankLines = Math.ceil(tVBI / hPeriodEstimate);
+                const totalLines = vActive + vBlankLines;
+                const hBlankClocks = 160.0;
+                const totalPixelsPerLine = hActive + hBlankClocks;
+
+                let pixelClockMHz = totalPixelsPerLine * totalLines * refresh / 1000000.0;
+                pixelClockMHz = Math.round(pixelClockMHz * 4.0) / 4.0;
+
+                return pixelClockMHz;
+            }
+        }
+
+        function getDefaultMaxRes(processor, macOS, betterDisplay) {
+            if (processor.startsWith("M1")) {
+                return macOS === "Monterey" ? 8192 : 6144;
+            } else if (processor.startsWith("M2") || processor.startsWith("M3") ||
+                       processor.startsWith("M4") || processor.startsWith("M5")) {
+                return betterDisplay ? 7680 : 6144;
+            }
+            return 6144;
+        }
+
+        function computeLimits() {
+            let allowedMax = 0;
+            let allowedPixels = Number.MAX_SAFE_INTEGER;
+
+            if (state.capacity === "SL") {
+                allowedMax = 2048;
+            } else if (state.capacity === "DL") {
+                allowedMax = 4096;
+            } else if (state.capacity === "4K") {
+                if (state.connector === "DP 1.2" && state.dualDp) {
+                    allowedMax = 6144;
+                } else if (state.connector !== "DP 1.2") {
+                    allowedMax = 4096;
+                } else {
+                    allowedMax = getDefaultMaxRes(state.processor, state.macos, state.betterDisplay);
+                }
+            } else {
+                allowedMax = getDefaultMaxRes(state.processor, state.macos, state.betterDisplay);
+            }
+
+            if (allowedMax <= 0) {
+                allowedMax = 4096;
+            }
+
+            return { maxInput: allowedMax, allowedPixels: allowedPixels };
+        }
+
+        function calculateEDIDTimings(width, height, frameRate, blanking) {
+            const hActive = width;
+            const vActive = height;
+
+            if (blanking === "RB V2") {
+                const hBlank = 80;
+                const hTotal = hActive + hBlank;
+                const vBlank = 30;
+                const vTotal = vActive + vBlank;
+
+                const hFrontPorch = 8;
+                const hSyncWidth = 32;
+                const vSyncWidth = 8;
+                const vBackPorch = 6;
+                const vFrontPorch = vBlank - vSyncWidth - vBackPorch;
+
+                const pixelClockMHz = hTotal * vTotal * frameRate / 1000000.0;
+                const roundedPixelClockMHz = Math.round(pixelClockMHz * 1000.0) / 1000.0;
+
+                const hFreq = roundedPixelClockMHz * 1000000.0 / hTotal / 1000.0;
+                const vFreq = frameRate;
+
+                return {
+                    hActive: hActive,
+                    hBlank: hBlank,
+                    hSyncOffset: hFrontPorch,
+                    hSyncWidth: hSyncWidth,
+                    vActive: vActive,
+                    vBlank: vBlank,
+                    vSyncOffset: vFrontPorch,
+                    vSyncWidth: vSyncWidth,
+                    pixelClock: roundedPixelClockMHz,
+                    hTotal: hTotal,
+                    vTotal: vTotal,
+                    hFreq: hFreq,
+                    vFreq: vFreq,
+                    hPolarity: "(+)",
+                    vPolarity: "(-)"
+                };
+            } else {
+                const hBlank = 160;
+                const hTotal = hActive + hBlank;
+
+                const tVBI = 460.0;
+                const hPeriodEstimate = (1000000.0 / frameRate - tVBI) / vActive;
+                const vBlankLines = Math.ceil(tVBI / hPeriodEstimate);
+                const vTotal = vActive + vBlankLines;
+                const vBlank = vBlankLines;
+
+                const hSyncOffset = 48;
+                const hSyncWidth = 32;
+                const vSyncWidth = 10;
+                const vFrontPorch = 3;
+
+                const pixelClockHz = hTotal * vTotal * frameRate;
+                const pixelClockMHz = Math.round(pixelClockHz / 1000000.0 * 4.0) / 4.0;
+
+                const hFreq = pixelClockMHz * 1000000.0 / hTotal / 1000.0;
+                const vFreq = frameRate;
+
+                return {
+                    hActive: hActive,
+                    hBlank: hBlank,
+                    hSyncOffset: hSyncOffset,
+                    hSyncWidth: hSyncWidth,
+                    vActive: vActive,
+                    vBlank: vBlank,
+                    vSyncOffset: vFrontPorch,
+                    vSyncWidth: vSyncWidth,
+                    pixelClock: pixelClockMHz,
+                    hTotal: hTotal,
+                    vTotal: vTotal,
+                    hFreq: hFreq,
+                    vFreq: vFreq,
+                    hPolarity: "(+)",
+                    vPolarity: "(-)"
+                };
+            }
+        }
+
+        function decimalAspectRatio(width, height) {
+            if (width <= 0 || height <= 0) return "-";
+
+            if (width >= height) {
+                const ratio = width / height;
+                return ratio.toFixed(2) + ":1";
+            } else {
+                const ratio = height / width;
+                return "1:" + ratio.toFixed(2);
+            }
+        }
+
+        // ==========================================
+        // MAIN CALCULATE FUNCTION
+        // ==========================================
+
+        function calculate() {
+            blinkScreen();
+            clearResults();
+
+            const widthInput = document.getElementById('displayWidth').value.trim();
+            const heightInput = document.getElementById('displayHeight').value.trim();
+
+            const origW = parseInt(widthInput);
+            const origH = parseInt(heightInput);
+
+            if (isNaN(origW) || isNaN(origH) || origW <= 0 || origH <= 0) {
+                showResults("Invalid input", "", "", "", "", "", null);
+                return;
+            }
+
+            const { maxInput, allowedPixels } = computeLimits();
+
+            // 1) candidateW is whichever is smaller: origW or maxInput, aligned to 8
+            let candidateW = Math.min(origW, maxInput);
+            candidateW -= (candidateW % 8);
+
+            // 2) keep aspect ratio
+            let candidateH = Math.floor((candidateW * origH) / origW);
+
+            // 3) scale down to meet pixel count and pixel clock limits
+            const maxLimit = computeMaxPixelClock();
+
+            while (candidateW > 0 && candidateW * candidateH > allowedPixels) {
+                candidateW -= 8;
+                candidateH = Math.floor((candidateW * origH) / origW);
+            }
+
+            // Check pixel clock/bandwidth limit
+            const frameRate = parseFloat(document.getElementById('frameRate').value);
+            const blanking = document.getElementById('reducedBlanking').value;
+
+            while (candidateW > 0) {
+                const pixelClock = computePixelClock(candidateW, candidateH, frameRate, blanking);
+
+                let exceedsLimit = false;
+
+                if (state.connector.startsWith("DP")) {
+                    exceedsLimit = pixelClock > maxLimit;
+                } else {
+                    const tmdsClk = pixelClock * getBandwidthMultiplier();
+                    exceedsLimit = tmdsClk > maxLimit;
+                }
+
+                if (!exceedsLimit) {
+                    break;
+                }
+
+                candidateW -= 8;
+                candidateH = Math.floor((candidateW * origH) / origW);
+            }
+
+            // Enforce pixel density max vertical constraint if enabled
+            if (state.pixelDensityMode) {
+                const maxV = parseInt(document.getElementById('maxVertical').value);
+                if (!isNaN(maxV) && maxV > 0) {
+                    const upper = maxV + 20;
+                    const alignedUpperV = upper - (upper % 8);
+                    const lower = maxV - 20;
+                    const alignedLowerV = lower + ((8 - (lower % 8)) % 8);
+
+                    function resolution(targetH) {
+                        let w = Math.floor((targetH * origW) / origH);
+                        w -= (w % 8);
+                        const h = Math.floor((w * origH) / origW);
+                        return { w: w, h: h };
+                    }
+
+                    let best = resolution(alignedLowerV);
+                    let smallestDiff = Math.abs(best.h - maxV);
+
+                    for (let h = alignedLowerV; h <= alignedUpperV; h += 8) {
+                        const cand = resolution(h);
+                        const diff = Math.abs(cand.h - maxV);
+                        if (diff < smallestDiff) {
+                            best = cand;
+                            smallestDiff = diff;
+                        }
+                    }
+
+                    candidateW = best.w;
+                    candidateH = best.h;
+                }
+            }
+
+            if (candidateW <= 0) {
+                showResults("Error", "", "", "", "", "", null);
+                return;
+            }
+
+            // Check if no scaling is needed
+            let newResolution;
+            let edidTimings;
+            const fr = frameRate;
+
+            if (candidateW === origW && candidateH === origH) {
+                newResolution = "No Scaling Needed";
+                if (state.dualDp) {
+                    edidTimings = calculateEDIDTimings(Math.floor(origW / 2), origH, fr, blanking);
+                } else {
+                    edidTimings = calculateEDIDTimings(origW, origH, fr, blanking);
+                }
+            } else {
+                newResolution = `${candidateW} x ${candidateH}`;
+                if (state.dualDp) {
+                    edidTimings = calculateEDIDTimings(Math.floor(candidateW / 2), candidateH, fr, blanking);
+                } else {
+                    edidTimings = calculateEDIDTimings(candidateW, candidateH, fr, blanking);
+                }
+            }
+
+            state.edidTimings = edidTimings;
+
+            // Aspect ratios
+            const originalAspect = decimalAspectRatio(origW, origH);
+            const scaledAspect = decimalAspectRatio(candidateW, candidateH);
+
+            // Keynote Canvas Calculation
+            const srW = candidateW;
+            const srH = candidateH;
+            const keynoteScale = Math.min(1.0, 8192.0 / srW, 8192.0 / srH);
+            const keynoteW = Math.floor(srW * keynoteScale);
+            const keynoteH = Math.floor(srH * keynoteScale);
+            const keynoteResult = `${keynoteW} x ${keynoteH}`;
+
+            // PPT Canvas Calculation
+            const pptScale = Math.min(1.0, 4032.0 / srW, 4032.0 / srH);
+            const pptW = Math.floor(srW * pptScale);
+            const pptH = Math.floor(srH * pptScale);
+            const pptWidthInches = pptW / 72.0;
+            const pptHeightInches = pptH / 72.0;
+            const pptResult = `${pptWidthInches.toFixed(2)} x ${pptHeightInches.toFixed(2)}in`;
+
+            // Calculate pixel/TMDS clock for display
+            const pcMHz = computePixelClock(candidateW, candidateH, fr, blanking);
+            let displayClock;
+            if (state.connector.startsWith("DP")) {
+                displayClock = pcMHz;
+            } else {
+                displayClock = pcMHz * getBandwidthMultiplier();
+            }
+            const scaledPixelClock = displayClock.toFixed(2) + " MHz";
+
+            showResults(newResolution, scaledPixelClock, originalAspect, scaledAspect, keynoteResult, pptResult, edidTimings);
+
+            // Scroll to results
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function showResults(resolution, pixelClock, origAspect, scaledAspect, keynote, ppt, timings) {
+            const resultsSection = document.getElementById('resultsSection');
+            resultsSection.classList.remove('hidden');
+
+            const scaledResEl = document.getElementById('scaledResolution');
+            scaledResEl.textContent = resolution;
+
+            if (resolution === "No Scaling Needed") {
+                scaledResEl.classList.add('result-value-success');
+            } else {
+                scaledResEl.classList.remove('result-value-success');
+            }
+
+            document.getElementById('pixelClockResult').textContent = pixelClock;
+            document.getElementById('originalAspect').textContent = origAspect;
+            document.getElementById('scaledAspect').textContent = scaledAspect;
+            document.getElementById('keynoteCanvas').textContent = keynote;
+            document.getElementById('pptCanvas').textContent = ppt;
+
+            // Update clock label based on connector
+            const clockLabel = document.getElementById('clockLabel');
+            clockLabel.textContent = state.connector.startsWith("HDMI") ? "TMDS Clock:" : "Pixel Clock:";
+
+            // Handle resolution per cable for Dual DP
+            const perCableRow = document.getElementById('resolutionPerCableRow');
+            const perCableValue = document.getElementById('resolutionPerCable');
+
+            if (state.dualDp && resolution !== "Invalid input" && resolution !== "Error") {
+                const pcNum = parseFloat(pixelClock.replace(" MHz", ""));
+                if (resolution !== "No Scaling Needed" || pcNum > 660) {
+                    perCableRow.classList.remove('hidden');
+
+                    let w, h;
+                    if (resolution === "No Scaling Needed") {
+                        w = parseInt(document.getElementById('displayWidth').value);
+                        h = parseInt(document.getElementById('displayHeight').value);
+                    } else {
+                        const parts = resolution.split(" x ");
+                        w = parseInt(parts[0]);
+                        h = parseInt(parts[1]);
+                    }
+                    perCableValue.textContent = `${Math.floor(w/2)} x ${h}`;
+                } else {
+                    perCableRow.classList.add('hidden');
+                }
+            } else {
+                perCableRow.classList.add('hidden');
+            }
+
+            // Show/hide EDID button
+            const edidBtn = document.getElementById('edidBtn');
+            if (timings) {
+                edidBtn.classList.remove('hidden');
+            } else {
+                edidBtn.classList.add('hidden');
+            }
+        }
+
+        function clearResults() {
+            const resultsSection = document.getElementById('resultsSection');
+            resultsSection.classList.add('hidden');
+            state.edidTimings = null;
+        }
+
+        // ==========================================
+        // UI UPDATE FUNCTIONS
+        // ==========================================
+
+        function updateLimits() {
+            const { maxInput } = computeLimits();
+            document.getElementById('maxHorizontal').textContent = maxInput;
+
+            const pc = computeMaxPixelClock();
+            document.getElementById('maxPixelClock').textContent = `${pc} MHz`;
+
+            document.getElementById('maxDisplays').textContent = getMaxSupportedDisplays();
+        }
+
+        function updateProcessorOptions() {
+            const processorSelect = document.getElementById('processor');
+            const filteredOptions = getFilteredProcessorOptions();
+
+            processorSelect.innerHTML = '';
+            filteredOptions.forEach(option => {
+                const opt = document.createElement('option');
+                opt.value = option;
+                opt.textContent = option;
+                processorSelect.appendChild(opt);
+            });
+
+            // If current processor is not in filtered options, select first one
+            if (!filteredOptions.includes(state.processor)) {
+                state.processor = filteredOptions[0];
+            }
+            processorSelect.value = state.processor;
+        }
+
+        function updateMacOSOptions() {
+            const macosSelect = document.getElementById('macos');
+            const filteredOptions = getFilteredMacOSOptions();
+
+            macosSelect.innerHTML = '';
+            filteredOptions.forEach(option => {
+                const opt = document.createElement('option');
+                opt.value = option;
+                opt.textContent = option;
+                macosSelect.appendChild(opt);
+            });
+
+            // If current macOS is not in filtered options, select first one
+            if (!filteredOptions.includes(state.macos)) {
+                state.macos = filteredOptions[0];
+            }
+            macosSelect.value = state.macos;
+        }
+
+        function updateBetterDisplayState() {
+            const betterDisplayCheckbox = document.getElementById('betterDisplay');
+            const warningEl = document.getElementById('betterDisplayWarning');
+
+            if (state.processor.startsWith("M1")) {
+                betterDisplayCheckbox.disabled = true;
+                betterDisplayCheckbox.checked = false;
+                state.betterDisplay = false;
+                warningEl.classList.remove('hidden');
+            } else {
+                betterDisplayCheckbox.disabled = false;
+                warningEl.classList.add('hidden');
+            }
+        }
+
+        function updateDualDpState() {
+            const dualDpCheckbox = document.getElementById('dualDp');
+            if (state.connector !== "DP 1.2") {
+                dualDpCheckbox.disabled = true;
+                dualDpCheckbox.checked = false;
+                state.dualDp = false;
+            } else {
+                dualDpCheckbox.disabled = false;
+            }
+        }
+
+        // ==========================================
+        // EVENT HANDLERS
+        // ==========================================
+
+        function onConnectorChange() {
+            state.connector = document.getElementById('connector').value;
+            if (state.connector !== "DP 1.2") {
+                state.dualDp = false;
+                document.getElementById('dualDp').checked = false;
+            }
+            updateDualDpState();
+            clearResults();
+            updateLimits();
+        }
+
+        function onComputerChange() {
+            state.computer = document.getElementById('computer').value;
+            updateProcessorOptions();
+            updateMacOSOptions();
+            updateBetterDisplayState();
+            clearResults();
+            updateLimits();
+        }
+
+        function onProcessorChange() {
+            state.processor = document.getElementById('processor').value;
+            updateMacOSOptions();
+            updateBetterDisplayState();
+            clearResults();
+            updateLimits();
+        }
+
+        function onMacOSChange() {
+            state.macos = document.getElementById('macos').value;
+            clearResults();
+            updateLimits();
+        }
+
+        function onCapacityChange() {
+            state.capacity = document.getElementById('capacity').value;
+            clearResults();
+            updateLimits();
+        }
+
+        function onBetterDisplayChange() {
+            state.betterDisplay = document.getElementById('betterDisplay').checked;
+            if (state.betterDisplay) {
+                state.dualDp = false;
+                document.getElementById('dualDp').checked = false;
+            }
+            clearResults();
+            updateLimits();
+        }
+
+        function onDualDpChange() {
+            state.dualDp = document.getElementById('dualDp').checked;
+            if (state.dualDp) {
+                state.betterDisplay = false;
+                document.getElementById('betterDisplay').checked = false;
+            }
+            clearResults();
+            updateLimits();
+        }
+
+        function onBitRateChange() {
+            state.bitRate = document.getElementById('bitRate').value;
+            clearResults();
+            updateLimits();
+        }
+
+        function onPixelDensityModeChange() {
+            state.pixelDensityMode = document.getElementById('pixelDensityMode').checked;
+            const maxVerticalInput = document.getElementById('maxVertical');
+
+            if (state.pixelDensityMode) {
+                maxVerticalInput.classList.remove('hidden');
+            } else {
+                maxVerticalInput.classList.add('hidden');
+                maxVerticalInput.value = '';
+            }
+            clearResults();
+        }
+
+        // ==========================================
+        // MODAL FUNCTIONS
+        // ==========================================
+
+        function showAlert(title, message) {
+            document.getElementById('alertTitle').textContent = title;
+            document.getElementById('alertMessage').textContent = message;
+            document.getElementById('alertModal').classList.add('active');
+        }
+
+        function closeAlert(event) {
+            if (!event || event.target === document.getElementById('alertModal')) {
+                document.getElementById('alertModal').classList.remove('active');
+            }
+        }
+
+        function showEDIDTimings() {
+            if (!state.edidTimings) return;
+
+            const timings = state.edidTimings;
+            const frameRate = document.getElementById('frameRate').value;
+            const bitRate = document.getElementById('bitRate').value;
+
+            // Get display resolution
+            let resolution;
+            const scaledRes = document.getElementById('scaledResolution').textContent;
+            if (scaledRes === "No Scaling Needed") {
+                const w = document.getElementById('displayWidth').value.trim();
+                const h = document.getElementById('displayHeight').value.trim();
+                resolution = `${w} x ${h}`;
+            } else {
+                resolution = scaledRes;
+            }
+
+            document.getElementById('edidSubtitle').textContent = `${resolution} @ ${frameRate}Hz - ${bitRate}`;
+
+            document.getElementById('hTotal').textContent = timings.hTotal;
+            document.getElementById('hFrontPorch').textContent = timings.hSyncOffset;
+            document.getElementById('hActive').textContent = timings.hActive;
+            document.getElementById('hSync').textContent = timings.hSyncWidth;
+            document.getElementById('hPolarity').textContent = timings.hPolarity;
+
+            document.getElementById('vTotal').textContent = timings.vTotal;
+            document.getElementById('vFrontPorch').textContent = timings.vSyncOffset;
+            document.getElementById('vActive').textContent = timings.vActive;
+            document.getElementById('vSync').textContent = timings.vSyncWidth;
+            document.getElementById('vPolarity').textContent = timings.vPolarity;
+            document.getElementById('vRate').textContent = timings.vFreq.toFixed(2) + " Hz";
+
+            document.getElementById('edidPixelClock').textContent = timings.pixelClock.toFixed(2) + " MHz";
+
+            document.getElementById('edidModal').classList.add('active');
+        }
+
+        function closeEDIDModal(event) {
+            if (!event || event.target === document.getElementById('edidModal')) {
+                document.getElementById('edidModal').classList.remove('active');
+            }
+        }
+
+        // ==========================================
+        // VISUAL EFFECTS
+        // ==========================================
+
+        function blinkScreen() {
+            const overlay = document.getElementById('blinkOverlay');
+            overlay.classList.add('active');
+            setTimeout(() => {
+                overlay.classList.remove('active');
+            }, 150);
+        }
+
+        // ==========================================
+        // INITIALIZATION
+        // ==========================================
+
+        function init() {
+            updateProcessorOptions();
+            updateMacOSOptions();
+            updateBetterDisplayState();
+            updateDualDpState();
+            updateLimits();
+
+            // Add keyboard support for Enter key on inputs
+            document.getElementById('displayWidth').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('displayHeight').focus();
+                }
+            });
+
+            document.getElementById('displayHeight').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    if (state.pixelDensityMode) {
+                        document.getElementById('maxVertical').focus();
+                    } else {
+                        calculate();
+                    }
+                }
+            });
+
+            document.getElementById('maxVertical').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    calculate();
+                }
+            });
+        }
+
+        // Run initialization when DOM is ready
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
