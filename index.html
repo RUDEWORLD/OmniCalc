@@ -1001,7 +1001,7 @@
         <div class="footer">
             By: Phillip Rude<br>
             Omniconpro.com<br>
-            <span id="versionString">V1.11.9</span><br>
+            <span id="versionString">V1.12.0</span><br>
             UPDATED: 01/17/26
         </div>
 
@@ -2162,10 +2162,13 @@
 
         function exportResults() {
             const resultsCard = document.querySelector('.card-results');
-            const exportBtn = document.querySelector('.export-btn');
+            const exportBtns = document.querySelectorAll('.export-btn');
+            const exportBtnContainer = exportBtns[0]?.parentElement;
 
-            // Hide the export button temporarily
-            exportBtn.style.display = 'none';
+            // Hide all export buttons temporarily
+            if (exportBtnContainer) {
+                exportBtnContainer.style.display = 'none';
+            }
 
             // Add padding for the screenshot
             const originalPadding = resultsCard.style.padding;
@@ -2177,8 +2180,10 @@
                 logging: false,
                 useCORS: true
             }).then(canvas => {
-                // Restore the export button
-                exportBtn.style.display = 'flex';
+                // Restore the export buttons
+                if (exportBtnContainer) {
+                    exportBtnContainer.style.display = 'flex';
+                }
                 resultsCard.style.padding = originalPadding;
 
                 const scaledRes = document.getElementById('scaledResolution').textContent;
@@ -2207,8 +2212,10 @@
                     }, 500);
                 }
             }).catch(err => {
-                // Restore the export button on error
-                exportBtn.style.display = 'flex';
+                // Restore the export buttons on error
+                if (exportBtnContainer) {
+                    exportBtnContainer.style.display = 'flex';
+                }
                 resultsCard.style.padding = originalPadding;
                 console.error('Export failed:', err);
                 showAlert('Export Failed', 'Unable to export results. Please try again.');
