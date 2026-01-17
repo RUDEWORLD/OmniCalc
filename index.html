@@ -1001,7 +1001,7 @@
         <div class="footer">
             By: Phillip Rude<br>
             Omniconpro.com<br>
-            <span id="versionString">V1.11.3</span><br>
+            <span id="versionString">V1.11.4</span><br>
             UPDATED: 01/17/26
         </div>
 
@@ -2194,17 +2194,55 @@
                     const imageData = canvas.toDataURL('image/jpeg', 0.95);
                     showExportModal(imageData, isIOS);
                 } else {
-                    // Desktop: Use download link
-                    const link = document.createElement('a');
-                    link.download = filename;
-                    link.href = canvas.toDataURL('image/jpeg', 0.95);
-                    link.style.display = 'none';
-                    link.target = '_blank';
-                    document.body.appendChild(link);
-                    link.click();
-                    setTimeout(() => {
-                        document.body.removeChild(link);
-                    }, 500);
+                    // Desktop: Handle iframe case separately
+                    const imageData = canvas.toDataURL('image/jpeg', 0.95);
+
+                    if (isInIframe()) {
+                        // In iframe - open new window with download link
+                        const newWindow = window.open('', '_blank');
+                        if (newWindow) {
+                            newWindow.document.write(`
+                                <!DOCTYPE html>
+                                <html>
+                                <head>
+                                    <title>Download ${filename}</title>
+                                    <style>
+                                        body { font-family: -apple-system, sans-serif; background: #1a2744; color: white;
+                                               display: flex; flex-direction: column; align-items: center;
+                                               justify-content: center; min-height: 100vh; margin: 0; padding: 20px; text-align: center; }
+                                        img { max-width: 90%; max-height: 50vh; border-radius: 10px; margin-bottom: 20px; }
+                                        a { background: linear-gradient(90deg, rgb(220, 130, 70), rgb(240, 150, 90));
+                                            color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none;
+                                            font-weight: 600; margin-top: 20px; display: inline-block; }
+                                        a:hover { opacity: 0.9; }
+                                        p { color: rgba(255,255,255,0.7); margin-top: 15px; }
+                                    </style>
+                                </head>
+                                <body>
+                                    <h2>Your image is ready</h2>
+                                    <img src="${imageData}" alt="Export">
+                                    <a href="${imageData}" download="${filename}">Download Image</a>
+                                    <p>Click the button to download, or right-click the image and choose "Save Image As".</p>
+                                </body>
+                                </html>
+                            `);
+                            newWindow.document.close();
+                        } else {
+                            showAlert('Download Blocked', 'Please allow pop-ups for this site to download files.');
+                        }
+                    } else {
+                        // Standard download
+                        const link = document.createElement('a');
+                        link.download = filename;
+                        link.href = imageData;
+                        link.style.display = 'none';
+                        link.target = '_blank';
+                        document.body.appendChild(link);
+                        link.click();
+                        setTimeout(() => {
+                            document.body.removeChild(link);
+                        }, 500);
+                    }
                 }
             }).catch(err => {
                 // Restore the export button on error
@@ -2324,6 +2362,14 @@
             }
         }
 
+        function isInIframe() {
+            try {
+                return window.self !== window.top;
+            } catch (e) {
+                return true;
+            }
+        }
+
         function downloadFile(blob, filename) {
             // Try multiple download methods for maximum compatibility
 
@@ -2333,23 +2379,53 @@
                 return;
             }
 
-            // Method 2: Convert blob to data URL and download
+            // Method 2: Convert blob to data URL
             const reader = new FileReader();
             reader.onload = function() {
                 const dataUrl = reader.result;
 
-                // Create download link
+                // If in iframe, open in new tab (downloads blocked in cross-origin iframes)
+                if (isInIframe()) {
+                    const newWindow = window.open('', '_blank');
+                    if (newWindow) {
+                        newWindow.document.write(`
+                            <!DOCTYPE html>
+                            <html>
+                            <head>
+                                <title>Download ${filename}</title>
+                                <style>
+                                    body { font-family: -apple-system, sans-serif; background: #1a2744; color: white;
+                                           display: flex; flex-direction: column; align-items: center;
+                                           justify-content: center; min-height: 100vh; margin: 0; padding: 20px; text-align: center; }
+                                    a { background: linear-gradient(90deg, rgb(220, 130, 70), rgb(240, 150, 90));
+                                        color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none;
+                                        font-weight: 600; margin-top: 20px; display: inline-block; }
+                                    a:hover { opacity: 0.9; }
+                                    p { color: rgba(255,255,255,0.7); margin-top: 15px; }
+                                </style>
+                            </head>
+                            <body>
+                                <h2>Your file is ready</h2>
+                                <a href="${dataUrl}" download="${filename}">Download ${filename}</a>
+                                <p>Click the button above to download your file.<br>If the download doesn't start, right-click and choose "Save As".</p>
+                            </body>
+                            </html>
+                        `);
+                        newWindow.document.close();
+                    } else {
+                        showAlert('Download Blocked', 'Please allow pop-ups for this site to download files.');
+                    }
+                    return;
+                }
+
+                // Standard download for non-iframe context
                 const link = document.createElement('a');
                 link.download = filename;
                 link.href = dataUrl;
                 link.style.display = 'none';
                 link.target = '_blank';
                 document.body.appendChild(link);
-
-                // Try click
                 link.click();
-
-                // Cleanup
                 setTimeout(() => {
                     document.body.removeChild(link);
                 }, 500);
