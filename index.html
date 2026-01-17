@@ -1001,7 +1001,7 @@
         <div class="footer">
             By: Phillip Rude<br>
             Omniconpro.com<br>
-            <span id="versionString">V1.11.2</span><br>
+            <span id="versionString">V1.11.3</span><br>
             UPDATED: 01/17/26
         </div>
 
@@ -2194,16 +2194,17 @@
                     const imageData = canvas.toDataURL('image/jpeg', 0.95);
                     showExportModal(imageData, isIOS);
                 } else {
-                    // Desktop: Use download link (must append to DOM for Safari)
+                    // Desktop: Use download link
                     const link = document.createElement('a');
                     link.download = filename;
                     link.href = canvas.toDataURL('image/jpeg', 0.95);
                     link.style.display = 'none';
+                    link.target = '_blank';
                     document.body.appendChild(link);
                     link.click();
                     setTimeout(() => {
                         document.body.removeChild(link);
-                    }, 100);
+                    }, 500);
                 }
             }).catch(err => {
                 // Restore the export button on error
@@ -2324,16 +2325,36 @@
         }
 
         function downloadFile(blob, filename) {
-            const link = document.createElement('a');
-            link.download = filename;
-            link.href = URL.createObjectURL(blob);
-            link.style.display = 'none';
-            document.body.appendChild(link);
-            link.click();
-            setTimeout(() => {
-                document.body.removeChild(link);
-                URL.revokeObjectURL(link.href);
-            }, 100);
+            // Try multiple download methods for maximum compatibility
+
+            // Method 1: Try using msSaveOrOpenBlob for IE/Edge
+            if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+                window.navigator.msSaveOrOpenBlob(blob, filename);
+                return;
+            }
+
+            // Method 2: Convert blob to data URL and download
+            const reader = new FileReader();
+            reader.onload = function() {
+                const dataUrl = reader.result;
+
+                // Create download link
+                const link = document.createElement('a');
+                link.download = filename;
+                link.href = dataUrl;
+                link.style.display = 'none';
+                link.target = '_blank';
+                document.body.appendChild(link);
+
+                // Try click
+                link.click();
+
+                // Cleanup
+                setTimeout(() => {
+                    document.body.removeChild(link);
+                }, 500);
+            };
+            reader.readAsDataURL(blob);
         }
 
         function importSettingsCSV(event) {
