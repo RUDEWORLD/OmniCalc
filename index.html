@@ -1001,7 +1001,7 @@
         <div class="footer">
             By: Phillip Rude<br>
             Omniconpro.com<br>
-            <span id="versionString">V1.12.0</span><br>
+            <span id="versionString">V1.11.11</span><br>
             UPDATED: 01/17/26
         </div>
 
@@ -2340,7 +2340,7 @@
         }
 
         function downloadFile(blob, filename) {
-            // Try multiple download methods for maximum compatibility
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
             // Method 1: Try using msSaveOrOpenBlob for IE/Edge
             if (window.navigator && window.navigator.msSaveOrOpenBlob) {
@@ -2348,12 +2348,28 @@
                 return;
             }
 
-            // Method 2: Convert blob to data URL
+            // Method 2: On mobile, try Web Share API first (works even in iframe)
+            if (isMobile && navigator.share && navigator.canShare) {
+                const mimeType = filename.endsWith('.csv') ? 'text/csv' : 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+                const file = new File([blob], filename, { type: mimeType });
+                if (navigator.canShare({ files: [file] })) {
+                    navigator.share({
+                        files: [file],
+                        title: filename
+                    }).catch(err => {
+                        // User cancelled - that's okay
+                        console.log('Share cancelled or failed:', err);
+                    });
+                    return;
+                }
+            }
+
+            // Method 3: Convert blob to data URL for other cases
             const reader = new FileReader();
             reader.onload = function() {
                 const dataUrl = reader.result;
 
-                // If in iframe, show modal with download link
+                // If in iframe (desktop), show modal with download link
                 if (isInIframe()) {
                     showFileDownloadModal(dataUrl, filename);
                     return;
