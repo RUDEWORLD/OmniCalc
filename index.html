@@ -1001,7 +1001,7 @@
         <div class="footer">
             By: Phillip Rude<br>
             Omniconpro.com<br>
-            <span id="versionString">V1.11.7</span><br>
+            <span id="versionString">V1.11.8</span><br>
             UPDATED: 01/17/26
         </div>
 
@@ -2198,26 +2198,47 @@
                     const imageData = canvas.toDataURL('image/jpeg', 0.95);
 
                     if (isInIframe()) {
-                        // In iframe - open new window with download link
+                        // In iframe - open new window and build page programmatically
                         const newWindow = window.open('', '_blank');
                         if (newWindow) {
-                            newWindow.document.write(
-                                '<!DOCTYPE html><html><head><title>Download</title>' +
-                                '<style>body{font-family:-apple-system,sans-serif;background:#1a2744;color:white;' +
-                                'display:flex;flex-direction:column;align-items:center;justify-content:center;' +
-                                'min-height:100vh;margin:0;padding:20px;text-align:center}' +
-                                'img{max-width:90%;max-height:50vh;border-radius:10px;margin-bottom:20px}' +
-                                'a{background:linear-gradient(90deg,rgb(220,130,70),rgb(240,150,90));' +
-                                'color:white;padding:15px 30px;border-radius:10px;text-decoration:none;' +
-                                'font-weight:600;font-size:16px;margin-top:20px;display:inline-block}' +
-                                'a:hover{opacity:0.9}p{color:rgba(255,255,255,0.7);margin-top:15px}</style></head>' +
-                                '<body><h2>Your image is ready</h2>' +
-                                '<img src="' + imageData + '" alt="Export">' +
-                                '<a href="' + imageData + '" download="' + filename + '">Download Image</a>' +
-                                '<p>Click the button to download, or right-click the image to save.</p>' +
-                                '</body></html>'
-                            );
-                            newWindow.document.close();
+                            const doc = newWindow.document;
+                            doc.write('<!DOCTYPE html><html><head><title>Download</title></head><body></body></html>');
+                            doc.close();
+
+                            // Style the body
+                            doc.body.style.cssText = 'font-family:-apple-system,sans-serif;background:#1a2744;color:white;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:20px;text-align:center';
+
+                            // Add heading
+                            const h2 = doc.createElement('h2');
+                            h2.textContent = 'Your image is ready';
+                            doc.body.appendChild(h2);
+
+                            // Add image
+                            const img = doc.createElement('img');
+                            img.src = imageData;
+                            img.alt = 'Export';
+                            img.style.cssText = 'max-width:90%;max-height:50vh;border-radius:10px;margin-bottom:20px';
+                            doc.body.appendChild(img);
+
+                            // Add download button
+                            const btn = doc.createElement('button');
+                            btn.textContent = 'Download Image';
+                            btn.style.cssText = 'background:linear-gradient(90deg,rgb(220,130,70),rgb(240,150,90));color:white;padding:15px 30px;border-radius:10px;border:none;font-weight:600;font-size:16px;margin-top:20px;cursor:pointer';
+                            btn.onclick = function() {
+                                const link = doc.createElement('a');
+                                link.href = imageData;
+                                link.download = filename;
+                                doc.body.appendChild(link);
+                                link.click();
+                                doc.body.removeChild(link);
+                            };
+                            doc.body.appendChild(btn);
+
+                            // Add instructions
+                            const p = doc.createElement('p');
+                            p.textContent = 'Click the button to download, or right-click the image to save.';
+                            p.style.cssText = 'color:rgba(255,255,255,0.7);margin-top:15px';
+                            doc.body.appendChild(p);
                         } else {
                             showAlert('Download Blocked', 'Please allow pop-ups for this site to download files.');
                         }
@@ -2379,21 +2400,37 @@
                 if (isInIframe()) {
                     const newWindow = window.open('', '_blank');
                     if (newWindow) {
-                        newWindow.document.write(
-                            '<!DOCTYPE html><html><head><title>Download</title>' +
-                            '<style>body{font-family:-apple-system,sans-serif;background:#1a2744;color:white;' +
-                            'display:flex;flex-direction:column;align-items:center;justify-content:center;' +
-                            'min-height:100vh;margin:0;padding:20px;text-align:center}' +
-                            'a{background:linear-gradient(90deg,rgb(220,130,70),rgb(240,150,90));' +
-                            'color:white;padding:15px 30px;border-radius:10px;text-decoration:none;' +
-                            'font-weight:600;font-size:16px;margin-top:20px;display:inline-block}' +
-                            'a:hover{opacity:0.9}p{color:rgba(255,255,255,0.7);margin-top:15px}</style></head>' +
-                            '<body><h2>Your file is ready</h2>' +
-                            '<a href="' + dataUrl + '" download="' + filename + '">Download ' + filename + '</a>' +
-                            '<p>Click the button above to download your file.</p>' +
-                            '</body></html>'
-                        );
-                        newWindow.document.close();
+                        const doc = newWindow.document;
+                        doc.write('<!DOCTYPE html><html><head><title>Download</title></head><body></body></html>');
+                        doc.close();
+
+                        // Style the body
+                        doc.body.style.cssText = 'font-family:-apple-system,sans-serif;background:#1a2744;color:white;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:20px;text-align:center';
+
+                        // Add heading
+                        const h2 = doc.createElement('h2');
+                        h2.textContent = 'Your file is ready';
+                        doc.body.appendChild(h2);
+
+                        // Add download button
+                        const btn = doc.createElement('button');
+                        btn.textContent = 'Download ' + filename;
+                        btn.style.cssText = 'background:linear-gradient(90deg,rgb(220,130,70),rgb(240,150,90));color:white;padding:15px 30px;border-radius:10px;border:none;font-weight:600;font-size:16px;margin-top:20px;cursor:pointer';
+                        btn.onclick = function() {
+                            const link = doc.createElement('a');
+                            link.href = dataUrl;
+                            link.download = filename;
+                            doc.body.appendChild(link);
+                            link.click();
+                            doc.body.removeChild(link);
+                        };
+                        doc.body.appendChild(btn);
+
+                        // Add instructions
+                        const p = doc.createElement('p');
+                        p.textContent = 'Click the button above to download your file.';
+                        p.style.cssText = 'color:rgba(255,255,255,0.7);margin-top:15px';
+                        doc.body.appendChild(p);
                     } else {
                         showAlert('Download Blocked', 'Please allow pop-ups for this site to download files.');
                     }
