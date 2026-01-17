@@ -1001,7 +1001,7 @@
         <div class="footer">
             By: Phillip Rude<br>
             Omniconpro.com<br>
-            <span id="versionString">V1.11.1</span><br>
+            <span id="versionString">V1.11.2</span><br>
             UPDATED: 01/17/26
         </div>
 
@@ -2133,9 +2133,10 @@
             // Detect if mobile device
             const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-            if (isMobile && navigator.share && navigator.canShare) {
-                // Mobile: Use Web Share API
-                pptx.write('blob').then(blob => {
+            // Always use blob method for more reliable cross-browser downloads
+            pptx.write('blob').then(blob => {
+                if (isMobile && navigator.share && navigator.canShare) {
+                    // Mobile: Use Web Share API
                     const file = new File([blob], filename, { type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation' });
                     if (navigator.canShare({ files: [file] })) {
                         navigator.share({
@@ -2144,18 +2145,19 @@
                             text: 'OmniCalc PPT Canvas Export'
                         }).catch(err => {
                             // User cancelled or share failed, fallback to download
-                            pptx.writeFile({ fileName: filename });
+                            downloadFile(blob, filename);
                         });
                     } else {
-                        pptx.writeFile({ fileName: filename });
+                        downloadFile(blob, filename);
                     }
-                }).catch(err => {
-                    showAlert('Export Failed', 'Unable to generate PPT file.');
-                });
-            } else {
-                // Desktop: Use direct download
-                pptx.writeFile({ fileName: filename });
-            }
+                } else {
+                    // Desktop: Use blob download (more reliable than writeFile)
+                    downloadFile(blob, filename);
+                }
+            }).catch(err => {
+                console.error('PPT export error:', err);
+                showAlert('Export Failed', 'Unable to generate PPT file. Please try again.');
+            });
         }
 
         function exportResults() {
@@ -2192,11 +2194,16 @@
                     const imageData = canvas.toDataURL('image/jpeg', 0.95);
                     showExportModal(imageData, isIOS);
                 } else {
-                    // Desktop: Use download link
+                    // Desktop: Use download link (must append to DOM for Safari)
                     const link = document.createElement('a');
                     link.download = filename;
                     link.href = canvas.toDataURL('image/jpeg', 0.95);
+                    link.style.display = 'none';
+                    document.body.appendChild(link);
                     link.click();
+                    setTimeout(() => {
+                        document.body.removeChild(link);
+                    }, 100);
                 }
             }).catch(err => {
                 // Restore the export button on error
@@ -2320,8 +2327,13 @@
             const link = document.createElement('a');
             link.download = filename;
             link.href = URL.createObjectURL(blob);
+            link.style.display = 'none';
+            document.body.appendChild(link);
             link.click();
-            URL.revokeObjectURL(link.href);
+            setTimeout(() => {
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+            }, 100);
         }
 
         function importSettingsCSV(event) {
