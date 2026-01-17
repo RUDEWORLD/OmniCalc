@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Apple Silicon to E2 Calculator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS@3.12.0/dist/pptxgen.bundle.js"></script>
     <style>
         * {
             margin: 0;
@@ -60,6 +62,50 @@
             font-weight: 600;
             color: rgba(255, 255, 255, 0.7);
             padding: 0 4px 12px 4px;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .section-title:hover {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .section-chevron {
+            font-size: 16px;
+            transition: transform 0.3s ease, color 0.3s ease;
+            color: #4ade80;
+        }
+
+        .section-chevron.collapsed {
+            transform: rotate(180deg);
+            color: #f87171;
+        }
+
+        .collapsible-content {
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.3s ease, margin 0.3s ease, padding 0.3s ease;
+            max-height: 2000px;
+            opacity: 1;
+        }
+
+        .collapsible-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+            margin-bottom: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+        }
+
+        .section-title.collapsed-title {
+            padding-bottom: 4px;
+        }
+
+        .divider.collapsed-divider {
+            margin: 8px 0;
         }
 
         /* Row Styling */
@@ -113,7 +159,7 @@
         }
 
         select option:disabled {
-            color: rgba(255, 255, 255, 0.35);
+            color: rgba(255, 255, 255, 0.1);
         }
 
         /* Toggle Switch */
@@ -523,6 +569,70 @@
             border-color: rgba(255, 255, 255, 0.5);
         }
 
+        /* Export Button */
+        .export-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(90deg, rgb(80, 140, 80), rgb(100, 160, 100));
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 16px;
+            transition: opacity 0.2s;
+        }
+
+        .export-btn:hover {
+            opacity: 0.9;
+        }
+
+        .export-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* CSV Buttons Container */
+        .csv-btn-container {
+            width: calc(100% - 40px);
+            max-width: 460px;
+            margin: 20px auto;
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Export/Import CSV Buttons */
+        .csv-btn {
+            flex: 1;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .csv-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .csv-file-input {
+            display: none;
+        }
+
         /* Responsive adjustments */
         @media (max-width: 480px) {
             .container {
@@ -555,8 +665,11 @@
 
     <div class="container">
         <!-- System Configuration Section -->
-        <div class="section-title">SYSTEM CONFIGURATION</div>
-        <div class="card">
+        <div class="section-title" onclick="toggleSection('systemConfig')">
+            <span>SYSTEM CONFIGURATION</span>
+            <span id="systemConfigChevron" class="section-chevron">▲</span>
+        </div>
+        <div id="systemConfigContent" class="card collapsible-content">
             <!-- Connector -->
             <div class="row">
                 <div class="row-label">Connector:</div>
@@ -628,8 +741,11 @@
         <div class="divider"></div>
 
         <!-- Configuration Limits Section -->
-        <div class="section-title">CONFIGURATION LIMITS</div>
-        <div class="card">
+        <div class="section-title" onclick="toggleSection('configLimits')">
+            <span>CONFIGURATION LIMITS</span>
+            <span id="configLimitsChevron" class="section-chevron">▲</span>
+        </div>
+        <div id="configLimitsContent" class="card collapsible-content">
             <div class="limit-row">
                 <div class="limit-label">
                     Max Horizontal:
@@ -652,8 +768,11 @@
         <div class="divider"></div>
 
         <!-- Resolution Calculator Section -->
-        <div class="section-title">RESOLUTION CALCULATOR</div>
-        <div class="card">
+        <div class="section-title" onclick="toggleSection('resCalc')">
+            <span>RESOLUTION CALCULATOR</span>
+            <span id="resCalcChevron" class="section-chevron">▲</span>
+        </div>
+        <div id="resCalcContent" class="card collapsible-content">
             <!-- Display Width -->
             <div class="row" style="background: transparent; padding: 2px 12px;">
                 <div class="row-label">Display Width:</div>
@@ -753,6 +872,10 @@
                         <div class="result-label" style="font-size: 16px;">Scaled Resolution:</div>
                         <div id="scaledResolution" class="result-value result-value-main"></div>
                     </div>
+                    <div class="result-row">
+                        <div class="result-label" style="font-size: 12px; color: rgba(255,255,255,0.5);">Original Resolution:</div>
+                        <div id="originalResolution" class="result-value" style="font-size: 12px; color: rgba(255,255,255,0.5); font-weight: 400;"></div>
+                    </div>
                     <div id="resolutionPerCableRow" class="result-row hidden">
                         <div class="result-label">Resolution Per Cable:</div>
                         <div id="resolutionPerCable" class="result-value"></div>
@@ -781,19 +904,104 @@
                     <div id="pptCanvas" class="result-value"></div>
                 </div>
 
-                <!-- EDID Timings Button -->
-                <button id="edidBtn" class="edid-btn" onclick="showEDIDTimings()">
-                    <span>&#128269;</span>
-                    SHOW EDID TIMINGS
-                </button>
+                <!-- EDID Timings Inline -->
+                <div id="edidTimingsInline" class="hidden">
+                    <div class="card-divider" style="margin: 16px 0;"></div>
+
+                    <div class="timing-title" style="margin-bottom: 8px;">EDID TIMINGS</div>
+                    <div id="edidSubtitleInline" style="font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 12px;"></div>
+
+                    <!-- Horizontal Timings -->
+                    <div class="timing-section">
+                        <div class="timing-title" style="font-size: 13px;">HORIZONTAL</div>
+                        <div class="timing-row">
+                            <div class="timing-label">H Total:</div>
+                            <div id="hTotalInline" class="timing-value"></div>
+                        </div>
+                        <div class="timing-row">
+                            <div class="timing-label">H Front Porch:</div>
+                            <div id="hFrontPorchInline" class="timing-value"></div>
+                        </div>
+                        <div class="timing-row">
+                            <div class="timing-label">H Active:</div>
+                            <div id="hActiveInline" class="timing-value"></div>
+                        </div>
+                        <div class="timing-row">
+                            <div class="timing-label">H Sync:</div>
+                            <div id="hSyncInline" class="timing-value"></div>
+                        </div>
+                        <div class="timing-row">
+                            <div class="timing-label">H Polarity:</div>
+                            <div id="hPolarityInline" class="timing-value"></div>
+                        </div>
+                    </div>
+
+                    <div class="card-divider"></div>
+
+                    <!-- Vertical Timings -->
+                    <div class="timing-section">
+                        <div class="timing-title" style="font-size: 13px;">VERTICAL</div>
+                        <div class="timing-row">
+                            <div class="timing-label">V Total:</div>
+                            <div id="vTotalInline" class="timing-value"></div>
+                        </div>
+                        <div class="timing-row">
+                            <div class="timing-label">V Front Porch:</div>
+                            <div id="vFrontPorchInline" class="timing-value"></div>
+                        </div>
+                        <div class="timing-row">
+                            <div class="timing-label">V Active:</div>
+                            <div id="vActiveInline" class="timing-value"></div>
+                        </div>
+                        <div class="timing-row">
+                            <div class="timing-label">V Sync:</div>
+                            <div id="vSyncInline" class="timing-value"></div>
+                        </div>
+                        <div class="timing-row">
+                            <div class="timing-label">V Polarity:</div>
+                            <div id="vPolarityInline" class="timing-value"></div>
+                        </div>
+                        <div class="timing-row">
+                            <div class="timing-label">V Rate:</div>
+                            <div id="vRateInline" class="timing-value"></div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Export Buttons -->
+                <div style="display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap;">
+                    <button class="export-btn" style="margin-top: 0; flex: 1; min-width: 100px;" onclick="exportResults()">
+                        <span>&#128247;</span>
+                        IMAGE
+                    </button>
+                    <button class="export-btn" style="margin-top: 0; flex: 1; min-width: 100px; background: linear-gradient(90deg, rgb(180, 100, 60), rgb(200, 120, 80));" onclick="exportPPT()">
+                        <span>&#128202;</span>
+                        PPT
+                    </button>
+                </div>
             </div>
+        </div>
+
+        <!-- CSV Import/Export Buttons -->
+        <div id="csvBtnContainer" class="csv-btn-container">
+            <button class="csv-btn" onclick="exportSettingsCSV()">
+                <span>&#128196;</span>
+                EXPORT CSV
+            </button>
+            <button class="csv-btn" onclick="document.getElementById('csvFileInput').click()">
+                <span>&#128229;</span>
+                IMPORT CSV
+            </button>
+            <input type="file" id="csvFileInput" class="csv-file-input" accept=".csv" onchange="importSettingsCSV(event)">
         </div>
 
         <!-- Footer -->
         <div class="footer">
             By: Phillip Rude<br>
             Omniconpro.com<br>
-            <span id="versionString">V1.10.0</span>
+            <span id="versionString">V1.11.0</span><br>
+            UPDATED: 01/17/26
         </div>
 
         <div class="disclaimer">
@@ -1549,6 +1757,11 @@
                 scaledResEl.classList.remove('result-value-success');
             }
 
+            // Show original resolution
+            const origW = document.getElementById('displayWidth').value.trim();
+            const origH = document.getElementById('displayHeight').value.trim();
+            document.getElementById('originalResolution').textContent = `${origW} x ${origH}`;
+
             document.getElementById('pixelClockResult').textContent = pixelClock;
             document.getElementById('originalAspect').textContent = origAspect;
             document.getElementById('scaledAspect').textContent = scaledAspect;
@@ -1585,12 +1798,40 @@
                 perCableRow.classList.add('hidden');
             }
 
-            // Show/hide EDID button
-            const edidBtn = document.getElementById('edidBtn');
+            // Show/populate inline EDID timings
+            const edidInline = document.getElementById('edidTimingsInline');
             if (timings) {
-                edidBtn.classList.remove('hidden');
+                edidInline.classList.remove('hidden');
+
+                // Get display resolution for subtitle
+                const frameRate = document.getElementById('frameRate').value;
+                const bitRate = document.getElementById('bitRate').value;
+                const chromaSub = document.getElementById('chromaSubsampling').value;
+                let displayRes;
+                if (resolution === "No Scaling Needed") {
+                    const w = document.getElementById('displayWidth').value.trim();
+                    const h = document.getElementById('displayHeight').value.trim();
+                    displayRes = `${w} x ${h}`;
+                } else {
+                    displayRes = resolution;
+                }
+                document.getElementById('edidSubtitleInline').textContent = `${displayRes} @ ${frameRate}Hz - ${bitRate} ${chromaSub}`;
+
+                // Populate timing values
+                document.getElementById('hTotalInline').textContent = timings.hTotal;
+                document.getElementById('hFrontPorchInline').textContent = timings.hSyncOffset;
+                document.getElementById('hActiveInline').textContent = timings.hActive;
+                document.getElementById('hSyncInline').textContent = timings.hSyncWidth;
+                document.getElementById('hPolarityInline').textContent = timings.hPolarity;
+
+                document.getElementById('vTotalInline').textContent = timings.vTotal;
+                document.getElementById('vFrontPorchInline').textContent = timings.vSyncOffset;
+                document.getElementById('vActiveInline').textContent = timings.vActive;
+                document.getElementById('vSyncInline').textContent = timings.vSyncWidth;
+                document.getElementById('vPolarityInline').textContent = timings.vPolarity;
+                document.getElementById('vRateInline').textContent = timings.vFreq.toFixed(2) + " Hz";
             } else {
-                edidBtn.classList.add('hidden');
+                edidInline.classList.add('hidden');
             }
         }
 
@@ -1781,6 +2022,475 @@
             updateAllDropdowns();
             clearResults();
             updateLimits();
+        }
+
+        // ==========================================
+        // EXPORT RESULTS
+        // ==========================================
+
+        function exportPPT() {
+            const originalRes = document.getElementById('originalResolution').textContent;
+            const scaledRes = document.getElementById('scaledResolution').textContent;
+            const pptCanvas = document.getElementById('pptCanvas').textContent;
+
+            // Parse PPT canvas dimensions (e.g., "53.33 x 30.00in")
+            const pptMatch = pptCanvas.match(/([\d.]+)\s*x\s*([\d.]+)/);
+            if (!pptMatch) {
+                showAlert('Export Failed', 'Unable to parse PPT Canvas dimensions.');
+                return;
+            }
+            const pptWidth = parseFloat(pptMatch[1]);
+            const pptHeight = parseFloat(pptMatch[2]);
+
+            // Create presentation with custom slide size
+            const pptx = new PptxGenJS();
+            pptx.defineLayout({ name: 'CUSTOM', width: pptWidth, height: pptHeight });
+            pptx.layout = 'CUSTOM';
+
+            // Add a slide
+            const slide = pptx.addSlide();
+
+            // Set dark background
+            slide.background = { color: '1E325A' };
+
+            // Scale font sizes based on slide height
+            const fontScale = pptHeight / 7.5;  // Base scale for standard slide
+
+            // Add title
+            slide.addText('PPT CANVAS', {
+                x: 0,
+                y: pptHeight * 0.15,
+                w: '100%',
+                h: pptHeight * 0.12,
+                fontSize: Math.round(60 * fontScale),
+                fontFace: 'Arial',
+                color: 'FFFFFF',
+                bold: true,
+                align: 'center',
+                valign: 'middle'
+            });
+
+            // Add Display (Original Resolution)
+            slide.addText(`Display: ${originalRes}`, {
+                x: 0,
+                y: pptHeight * 0.32,
+                w: '100%',
+                h: pptHeight * 0.08,
+                fontSize: Math.round(32 * fontScale),
+                fontFace: 'Arial',
+                color: 'AAAAAA',
+                align: 'center',
+                valign: 'middle'
+            });
+
+            // Add Scaled Resolution (use original if no scaling needed)
+            const displayResolution = scaledRes === "No Scaling Needed" ? originalRes : scaledRes;
+            slide.addText(`Resolution: ${displayResolution}`, {
+                x: 0,
+                y: pptHeight * 0.45,
+                w: '100%',
+                h: pptHeight * 0.1,
+                fontSize: Math.round(44 * fontScale),
+                fontFace: 'Arial',
+                color: '4ADE80',
+                bold: true,
+                align: 'center',
+                valign: 'middle'
+            });
+
+            // Add PPT Canvas size
+            slide.addText(`PPT Canvas: ${pptCanvas}`, {
+                x: 0,
+                y: pptHeight * 0.58,
+                w: '100%',
+                h: pptHeight * 0.08,
+                fontSize: Math.round(32 * fontScale),
+                fontFace: 'Arial',
+                color: 'AAAAAA',
+                align: 'center',
+                valign: 'middle'
+            });
+
+            // Add footer
+            slide.addText('Generated by OmniCalc - omniconpro.com', {
+                x: 0,
+                y: pptHeight * 0.88,
+                w: '100%',
+                h: pptHeight * 0.06,
+                fontSize: Math.round(16 * fontScale),
+                fontFace: 'Arial',
+                color: '666666',
+                align: 'center',
+                valign: 'middle'
+            });
+
+            // Save the file
+            const dateStr = new Date().toISOString().slice(0, 10);
+            pptx.writeFile({ fileName: `PPT_Canvas_${scaledRes.replace(/ /g, '')}_${dateStr}.pptx` });
+        }
+
+        function exportResults() {
+            const resultsCard = document.querySelector('.card-results');
+            const exportBtn = document.querySelector('.export-btn');
+
+            // Hide the export button temporarily
+            exportBtn.style.display = 'none';
+
+            // Add padding for the screenshot
+            const originalPadding = resultsCard.style.padding;
+            resultsCard.style.padding = '20px';
+
+            html2canvas(resultsCard, {
+                backgroundColor: 'rgb(30, 50, 90)',
+                scale: 2, // Higher resolution
+                logging: false,
+                useCORS: true
+            }).then(canvas => {
+                // Restore the export button
+                exportBtn.style.display = 'flex';
+                resultsCard.style.padding = originalPadding;
+
+                const scaledRes = document.getElementById('scaledResolution').textContent;
+                const timestamp = new Date().toISOString().slice(0, 10);
+                const filename = `EDID_Results_${scaledRes.replace(/ /g, '')}_${timestamp}.jpg`;
+
+                // Detect if mobile device
+                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+                if (isMobile) {
+                    // For mobile devices, show the image in a modal for long-press saving
+                    const imageData = canvas.toDataURL('image/jpeg', 0.95);
+                    showExportModal(imageData, isIOS);
+                } else {
+                    // Desktop: Use download link
+                    const link = document.createElement('a');
+                    link.download = filename;
+                    link.href = canvas.toDataURL('image/jpeg', 0.95);
+                    link.click();
+                }
+            }).catch(err => {
+                // Restore the export button on error
+                exportBtn.style.display = 'flex';
+                resultsCard.style.padding = originalPadding;
+                console.error('Export failed:', err);
+                showAlert('Export Failed', 'Unable to export results. Please try again.');
+            });
+        }
+
+        function exportSettingsCSV() {
+            const timestamp = new Date().toISOString();
+            const version = document.getElementById('versionString').textContent;
+            const hasResults = !document.getElementById('resultsSection').classList.contains('hidden');
+
+            // Gather all settings
+            const settings = {
+                // App Info
+                'App Version': version,
+                'Export Timestamp': timestamp,
+
+                // System Configuration
+                'Connector': state.connector,
+                'Computer Model': state.computer || 'Not Selected',
+                'M-Series Chip': state.processor || 'Not Selected',
+                'macOS': state.macos || 'Not Selected',
+                'Connector Capacity': state.capacity,
+                'Better Display': state.betterDisplay ? 'On' : 'Off',
+
+                // Resolution Calculator Settings
+                'Display Width Input': document.getElementById('displayWidth').value || '',
+                'Display Height Input': document.getElementById('displayHeight').value || '',
+                'Frame Rate': document.getElementById('frameRate').value,
+                'Bit Rate': state.bitRate,
+                'Chroma Subsampling': state.chromaSubsampling,
+                'Reduced Blanking': document.getElementById('reducedBlanking').value,
+                'Dual DP 1.2': state.dualDp ? 'On' : 'Off',
+                'Pixel Density Mode': state.pixelDensityMode ? 'On' : 'Off',
+                'Max Vertical': document.getElementById('maxVertical').value || 'N/A',
+
+                // Configuration Limits
+                'Max Horizontal Limit': document.getElementById('maxHorizontal').textContent,
+                'Max Pixel Clock Limit': document.getElementById('maxPixelClock').textContent,
+                'Max Displays': document.getElementById('maxDisplays').textContent
+            };
+
+            // Add results only if calculation has been run
+            if (hasResults) {
+                settings['Scaled Resolution'] = document.getElementById('scaledResolution').textContent || '';
+                settings['Original Resolution'] = document.getElementById('originalResolution').textContent || '';
+                settings['Pixel Clock Result'] = document.getElementById('pixelClockResult').textContent || '';
+                settings['Original Aspect'] = document.getElementById('originalAspect').textContent || '';
+                settings['Scaled Aspect'] = document.getElementById('scaledAspect').textContent || '';
+                settings['Keynote Canvas'] = document.getElementById('keynoteCanvas').textContent || '';
+                settings['PPT Canvas'] = document.getElementById('pptCanvas').textContent || '';
+            }
+
+            // Add EDID timings if available
+            if (hasResults && state.edidTimings) {
+                settings['EDID H Total'] = state.edidTimings.hTotal;
+                settings['EDID H Front Porch'] = state.edidTimings.hSyncOffset;
+                settings['EDID H Active'] = state.edidTimings.hActive;
+                settings['EDID H Sync'] = state.edidTimings.hSyncWidth;
+                settings['EDID H Polarity'] = state.edidTimings.hPolarity;
+                settings['EDID V Total'] = state.edidTimings.vTotal;
+                settings['EDID V Front Porch'] = state.edidTimings.vSyncOffset;
+                settings['EDID V Active'] = state.edidTimings.vActive;
+                settings['EDID V Sync'] = state.edidTimings.vSyncWidth;
+                settings['EDID V Polarity'] = state.edidTimings.vPolarity;
+                settings['EDID V Rate'] = state.edidTimings.vFreq.toFixed(2) + ' Hz';
+                settings['EDID Pixel Clock'] = state.edidTimings.pixelClock.toFixed(2) + ' MHz';
+            }
+
+            // Build CSV content
+            let csvContent = 'Setting,Value\n';
+            for (const [key, value] of Object.entries(settings)) {
+                // Escape values that contain commas or quotes
+                let escapedValue = String(value).replace(/"/g, '""');
+                if (escapedValue.includes(',') || escapedValue.includes('"') || escapedValue.includes('\n')) {
+                    escapedValue = `"${escapedValue}"`;
+                }
+                csvContent += `${key},${escapedValue}\n`;
+            }
+
+            // Download CSV
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const dateStr = new Date().toISOString().slice(0, 10);
+            let filename;
+            if (hasResults) {
+                const scaledRes = document.getElementById('scaledResolution').textContent.replace(/ /g, '');
+                filename = `EDID_Settings_${scaledRes}_${dateStr}.csv`;
+            } else {
+                filename = `EDID_Settings_${dateStr}.csv`;
+            }
+            link.download = filename;
+            link.href = URL.createObjectURL(blob);
+            link.click();
+            URL.revokeObjectURL(link.href);
+        }
+
+        function importSettingsCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const csvContent = e.target.result;
+                    const lines = csvContent.split('\n');
+                    const settings = {};
+
+                    // Parse CSV into key-value pairs
+                    for (let i = 1; i < lines.length; i++) {
+                        const line = lines[i].trim();
+                        if (!line) continue;
+
+                        // Handle quoted values
+                        let key, value;
+                        if (line.includes(',"')) {
+                            const match = line.match(/^([^,]+),\"(.*)\"$/);
+                            if (match) {
+                                key = match[1];
+                                value = match[2].replace(/""/g, '"');
+                            }
+                        } else {
+                            const commaIndex = line.indexOf(',');
+                            if (commaIndex > -1) {
+                                key = line.substring(0, commaIndex);
+                                value = line.substring(commaIndex + 1);
+                            }
+                        }
+
+                        if (key) {
+                            settings[key] = value;
+                        }
+                    }
+
+                    // Load System Configuration
+                    if (settings['Connector']) {
+                        state.connector = settings['Connector'];
+                        document.getElementById('connector').value = settings['Connector'];
+                    }
+
+                    if (settings['Computer Model'] && settings['Computer Model'] !== 'Not Selected') {
+                        state.computer = settings['Computer Model'];
+                        document.getElementById('computer').value = settings['Computer Model'];
+                    } else {
+                        state.computer = '';
+                        document.getElementById('computer').value = '';
+                    }
+
+                    if (settings['M-Series Chip'] && settings['M-Series Chip'] !== 'Not Selected') {
+                        state.processor = settings['M-Series Chip'];
+                    } else {
+                        state.processor = '';
+                    }
+
+                    if (settings['macOS'] && settings['macOS'] !== 'Not Selected') {
+                        state.macos = settings['macOS'];
+                    } else {
+                        state.macos = '';
+                    }
+
+                    if (settings['Connector Capacity']) {
+                        state.capacity = settings['Connector Capacity'];
+                        document.getElementById('capacity').value = settings['Connector Capacity'];
+                    }
+
+                    if (settings['Better Display']) {
+                        state.betterDisplay = settings['Better Display'] === 'On';
+                        document.getElementById('betterDisplay').checked = state.betterDisplay;
+                    }
+
+                    // Load Resolution Calculator Settings
+                    if (settings['Display Width Input']) {
+                        document.getElementById('displayWidth').value = settings['Display Width Input'];
+                    }
+
+                    if (settings['Display Height Input']) {
+                        document.getElementById('displayHeight').value = settings['Display Height Input'];
+                    }
+
+                    if (settings['Frame Rate']) {
+                        document.getElementById('frameRate').value = settings['Frame Rate'];
+                    }
+
+                    if (settings['Bit Rate']) {
+                        state.bitRate = settings['Bit Rate'];
+                        document.getElementById('bitRate').value = settings['Bit Rate'];
+                    }
+
+                    if (settings['Chroma Subsampling']) {
+                        state.chromaSubsampling = settings['Chroma Subsampling'];
+                        document.getElementById('chromaSubsampling').value = settings['Chroma Subsampling'];
+                    }
+
+                    if (settings['Reduced Blanking']) {
+                        document.getElementById('reducedBlanking').value = settings['Reduced Blanking'];
+                    }
+
+                    if (settings['Dual DP 1.2']) {
+                        state.dualDp = settings['Dual DP 1.2'] === 'On';
+                        document.getElementById('dualDp').checked = state.dualDp;
+                    }
+
+                    if (settings['Pixel Density Mode']) {
+                        state.pixelDensityMode = settings['Pixel Density Mode'] === 'On';
+                        document.getElementById('pixelDensityMode').checked = state.pixelDensityMode;
+                        const maxVerticalInput = document.getElementById('maxVertical');
+                        if (state.pixelDensityMode) {
+                            maxVerticalInput.classList.remove('hidden');
+                        } else {
+                            maxVerticalInput.classList.add('hidden');
+                        }
+                    }
+
+                    if (settings['Max Vertical'] && settings['Max Vertical'] !== 'N/A') {
+                        document.getElementById('maxVertical').value = settings['Max Vertical'];
+                    }
+
+                    // Update UI
+                    updateAllDropdowns();
+                    updateDualDpState();
+                    updateLimits();
+                    clearResults();
+
+                    showAlert('Import Successful', 'Settings have been loaded. Click CALCULATE to see results.');
+
+                } catch (err) {
+                    console.error('Import failed:', err);
+                    showAlert('Import Failed', 'Unable to parse CSV file. Please check the file format.');
+                }
+
+                // Reset file input
+                event.target.value = '';
+            };
+
+            reader.readAsText(file);
+        }
+
+        function showExportModal(imageData, isIOS) {
+            // Create modal for mobile image saving
+            const modal = document.createElement('div');
+            modal.id = 'exportModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.9);
+                z-index: 2000;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+            `;
+
+            const instruction = document.createElement('div');
+            instruction.style.cssText = `
+                color: white;
+                font-size: 16px;
+                margin-bottom: 15px;
+                text-align: center;
+            `;
+            instruction.textContent = isIOS
+                ? 'Press and hold the image, then tap "Add to Photos"'
+                : 'Press and hold the image to save';
+
+            const img = document.createElement('img');
+            img.src = imageData;
+            img.style.cssText = `
+                max-width: 90%;
+                max-height: 70%;
+                border-radius: 10px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            `;
+
+            const closeBtn = document.createElement('button');
+            closeBtn.textContent = 'Close';
+            closeBtn.style.cssText = `
+                margin-top: 20px;
+                padding: 12px 40px;
+                background: rgba(255, 255, 255, 0.2);
+                border: 1px solid rgba(255, 255, 255, 0.4);
+                border-radius: 8px;
+                color: white;
+                font-size: 16px;
+                cursor: pointer;
+            `;
+            closeBtn.onclick = () => modal.remove();
+
+            modal.appendChild(instruction);
+            modal.appendChild(img);
+            modal.appendChild(closeBtn);
+            document.body.appendChild(modal);
+
+            // Also close on background tap
+            modal.onclick = (e) => {
+                if (e.target === modal) modal.remove();
+            };
+        }
+
+        // ==========================================
+        // COLLAPSIBLE SECTIONS
+        // ==========================================
+
+        function toggleSection(sectionId) {
+            const content = document.getElementById(sectionId + 'Content');
+            const chevron = document.getElementById(sectionId + 'Chevron');
+            const title = chevron.parentElement;
+
+            content.classList.toggle('collapsed');
+            chevron.classList.toggle('collapsed');
+            title.classList.toggle('collapsed-title');
+
+            // Also collapse the divider after this section if it exists
+            const nextDivider = content.nextElementSibling;
+            if (nextDivider && nextDivider.classList.contains('divider')) {
+                nextDivider.classList.toggle('collapsed-divider');
+            }
         }
 
         // ==========================================
