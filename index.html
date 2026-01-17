@@ -1001,7 +1001,7 @@
         <div class="footer">
             By: Phillip Rude<br>
             Omniconpro.com<br>
-            <span id="versionString">V1.11.8</span><br>
+            <span id="versionString">V1.11.9</span><br>
             UPDATED: 01/17/26
         </div>
 
@@ -2189,72 +2189,22 @@
                 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
                 const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-                if (isMobile) {
-                    // For mobile devices, show the image in a modal for long-press saving
-                    const imageData = canvas.toDataURL('image/jpeg', 0.95);
+                const imageData = canvas.toDataURL('image/jpeg', 0.95);
+
+                if (isMobile || isInIframe()) {
+                    // Mobile or iframe: show modal with image for right-click/long-press saving
                     showExportModal(imageData, isIOS);
                 } else {
-                    // Desktop: Handle iframe case separately
-                    const imageData = canvas.toDataURL('image/jpeg', 0.95);
-
-                    if (isInIframe()) {
-                        // In iframe - open new window and build page programmatically
-                        const newWindow = window.open('', '_blank');
-                        if (newWindow) {
-                            const doc = newWindow.document;
-                            doc.write('<!DOCTYPE html><html><head><title>Download</title></head><body></body></html>');
-                            doc.close();
-
-                            // Style the body
-                            doc.body.style.cssText = 'font-family:-apple-system,sans-serif;background:#1a2744;color:white;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:20px;text-align:center';
-
-                            // Add heading
-                            const h2 = doc.createElement('h2');
-                            h2.textContent = 'Your image is ready';
-                            doc.body.appendChild(h2);
-
-                            // Add image
-                            const img = doc.createElement('img');
-                            img.src = imageData;
-                            img.alt = 'Export';
-                            img.style.cssText = 'max-width:90%;max-height:50vh;border-radius:10px;margin-bottom:20px';
-                            doc.body.appendChild(img);
-
-                            // Add download button
-                            const btn = doc.createElement('button');
-                            btn.textContent = 'Download Image';
-                            btn.style.cssText = 'background:linear-gradient(90deg,rgb(220,130,70),rgb(240,150,90));color:white;padding:15px 30px;border-radius:10px;border:none;font-weight:600;font-size:16px;margin-top:20px;cursor:pointer';
-                            btn.onclick = function() {
-                                const link = doc.createElement('a');
-                                link.href = imageData;
-                                link.download = filename;
-                                doc.body.appendChild(link);
-                                link.click();
-                                doc.body.removeChild(link);
-                            };
-                            doc.body.appendChild(btn);
-
-                            // Add instructions
-                            const p = doc.createElement('p');
-                            p.textContent = 'Click the button to download, or right-click the image to save.';
-                            p.style.cssText = 'color:rgba(255,255,255,0.7);margin-top:15px';
-                            doc.body.appendChild(p);
-                        } else {
-                            showAlert('Download Blocked', 'Please allow pop-ups for this site to download files.');
-                        }
-                    } else {
-                        // Standard download
-                        const link = document.createElement('a');
-                        link.download = filename;
-                        link.href = imageData;
-                        link.style.display = 'none';
-                        link.target = '_blank';
-                        document.body.appendChild(link);
-                        link.click();
-                        setTimeout(() => {
-                            document.body.removeChild(link);
-                        }, 500);
-                    }
+                    // Standard desktop download (not in iframe)
+                    const link = document.createElement('a');
+                    link.download = filename;
+                    link.href = imageData;
+                    link.style.display = 'none';
+                    document.body.appendChild(link);
+                    link.click();
+                    setTimeout(() => {
+                        document.body.removeChild(link);
+                    }, 500);
                 }
             }).catch(err => {
                 // Restore the export button on error
@@ -2396,44 +2346,9 @@
             reader.onload = function() {
                 const dataUrl = reader.result;
 
-                // If in iframe, open in new tab (downloads blocked in cross-origin iframes)
+                // If in iframe, show modal with download link
                 if (isInIframe()) {
-                    const newWindow = window.open('', '_blank');
-                    if (newWindow) {
-                        const doc = newWindow.document;
-                        doc.write('<!DOCTYPE html><html><head><title>Download</title></head><body></body></html>');
-                        doc.close();
-
-                        // Style the body
-                        doc.body.style.cssText = 'font-family:-apple-system,sans-serif;background:#1a2744;color:white;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:20px;text-align:center';
-
-                        // Add heading
-                        const h2 = doc.createElement('h2');
-                        h2.textContent = 'Your file is ready';
-                        doc.body.appendChild(h2);
-
-                        // Add download button
-                        const btn = doc.createElement('button');
-                        btn.textContent = 'Download ' + filename;
-                        btn.style.cssText = 'background:linear-gradient(90deg,rgb(220,130,70),rgb(240,150,90));color:white;padding:15px 30px;border-radius:10px;border:none;font-weight:600;font-size:16px;margin-top:20px;cursor:pointer';
-                        btn.onclick = function() {
-                            const link = doc.createElement('a');
-                            link.href = dataUrl;
-                            link.download = filename;
-                            doc.body.appendChild(link);
-                            link.click();
-                            doc.body.removeChild(link);
-                        };
-                        doc.body.appendChild(btn);
-
-                        // Add instructions
-                        const p = doc.createElement('p');
-                        p.textContent = 'Click the button above to download your file.';
-                        p.style.cssText = 'color:rgba(255,255,255,0.7);margin-top:15px';
-                        doc.body.appendChild(p);
-                    } else {
-                        showAlert('Download Blocked', 'Please allow pop-ups for this site to download files.');
-                    }
+                    showFileDownloadModal(dataUrl, filename);
                     return;
                 }
 
@@ -2592,8 +2507,86 @@
             reader.readAsText(file);
         }
 
+        function showFileDownloadModal(dataUrl, filename) {
+            // Create modal for file download (CSV/PPT)
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            const modal = document.createElement('div');
+            modal.id = 'fileDownloadModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.9);
+                z-index: 2000;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+            `;
+
+            const title = document.createElement('h2');
+            title.textContent = 'Your file is ready';
+            title.style.cssText = 'color: white; margin-bottom: 20px;';
+            modal.appendChild(title);
+
+            const instruction = document.createElement('div');
+            instruction.style.cssText = `
+                color: rgba(255, 255, 255, 0.7);
+                font-size: 16px;
+                margin-bottom: 20px;
+                text-align: center;
+            `;
+            if (isMobile) {
+                instruction.textContent = 'Tap and hold the link below, then tap "Download Linked File"';
+            } else {
+                instruction.textContent = 'Right-click the link below and select "Download Linked File As..."';
+            }
+            modal.appendChild(instruction);
+
+            const link = document.createElement('a');
+            link.href = dataUrl;
+            link.download = filename;
+            link.textContent = filename;
+            link.style.cssText = `
+                background: linear-gradient(90deg, rgb(220, 130, 70), rgb(240, 150, 90));
+                color: white;
+                padding: 15px 30px;
+                border-radius: 10px;
+                text-decoration: none;
+                font-weight: 600;
+                font-size: 16px;
+            `;
+            modal.appendChild(link);
+
+            const closeBtn = document.createElement('button');
+            closeBtn.textContent = 'Close';
+            closeBtn.style.cssText = `
+                margin-top: 30px;
+                padding: 12px 40px;
+                background: rgba(255, 255, 255, 0.2);
+                border: 1px solid rgba(255, 255, 255, 0.4);
+                border-radius: 8px;
+                color: white;
+                font-size: 16px;
+                cursor: pointer;
+            `;
+            closeBtn.onclick = () => modal.remove();
+            modal.appendChild(closeBtn);
+
+            // Close on background click
+            modal.onclick = (e) => {
+                if (e.target === modal) modal.remove();
+            };
+
+            document.body.appendChild(modal);
+        }
+
         function showExportModal(imageData, isIOS) {
-            // Create modal for mobile image saving
+            // Create modal for image saving
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
             const modal = document.createElement('div');
             modal.id = 'exportModal';
             modal.style.cssText = `
@@ -2618,9 +2611,13 @@
                 margin-bottom: 15px;
                 text-align: center;
             `;
-            instruction.textContent = isIOS
-                ? 'Press and hold the image, then tap "Add to Photos"'
-                : 'Press and hold the image to save';
+            if (isMobile) {
+                instruction.textContent = isIOS
+                    ? 'Press and hold the image, then tap "Add to Photos"'
+                    : 'Press and hold the image to save';
+            } else {
+                instruction.textContent = 'Right-click the image and select "Save Image As..."';
+            }
 
             const img = document.createElement('img');
             img.src = imageData;
