@@ -101,11 +101,19 @@
             background-repeat: no-repeat;
             background-position: right 5px center;
             padding-right: 25px;
+            text-align: right;
+            direction: rtl;
         }
 
         select option {
             background: rgb(40, 60, 105);
             color: white;
+            direction: ltr;
+            text-align: right;
+        }
+
+        select option:disabled {
+            color: rgba(255, 255, 255, 0.35);
         }
 
         /* Toggle Switch */
@@ -495,6 +503,26 @@
             display: none !important;
         }
 
+        /* Reset Button */
+        .reset-btn {
+            display: block;
+            margin: 12px auto 0 auto;
+            padding: 8px 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .reset-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
         /* Responsive adjustments */
         @media (max-width: 480px) {
             .container {
@@ -531,10 +559,7 @@
         <div class="card">
             <!-- Connector -->
             <div class="row">
-                <div class="row-label">
-                    <span class="icon">&#128268;</span>
-                    Connector
-                </div>
+                <div class="row-label">Connector:</div>
                 <select id="connector" onchange="onConnectorChange()">
                     <option value="HDMI 2.0">HDMI 2.0</option>
                     <option value="DP 1.2" selected>DP 1.2</option>
@@ -545,7 +570,8 @@
             <div class="row">
                 <div class="row-label">Computer Model:</div>
                 <select id="computer" onchange="onComputerChange()">
-                    <option value="MacBookPro" selected>MacBookPro</option>
+                    <option value="" selected>-- Select --</option>
+                    <option value="MacBookPro">MacBookPro</option>
                     <option value="MacStudio">MacStudio</option>
                     <option value="MacPro">MacPro</option>
                     <option value="MacMini">MacMini</option>
@@ -556,6 +582,7 @@
             <div class="row">
                 <div class="row-label">M-Series Chip:</div>
                 <select id="processor" onchange="onProcessorChange()">
+                    <option value="" selected>-- Select --</option>
                     <!-- Options populated by JavaScript -->
                 </select>
             </div>
@@ -564,6 +591,7 @@
             <div class="row">
                 <div class="row-label">MacOS:</div>
                 <select id="macos" onchange="onMacOSChange()">
+                    <option value="" selected>-- Select --</option>
                     <!-- Options populated by JavaScript -->
                 </select>
             </div>
@@ -582,8 +610,7 @@
             <div class="row" style="flex-direction: column; align-items: stretch;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div class="row-label">
-                        <span class="icon">&#128421;</span>
-                        Better Display
+                        Better Display:
                         <button class="help-btn" onclick="showAlert('Better Display', 'Better Display is a Mac app similar to SwitchResX that allows you to load custom EDID files. You can use this software to increase the maximum display resolution of macs with custom created EDID files. Better Display has no positive impact on any M1 series processor and is disabled as an option when M1s are selected.')">&#9432;</button>
                     </div>
                     <label class="toggle">
@@ -593,6 +620,9 @@
                 </div>
                 <div id="betterDisplayWarning" class="warning-text hidden">Won't boost resolution for M1 chips</div>
             </div>
+
+            <!-- Reset Button -->
+            <button class="reset-btn" onclick="resetSystemConfig()">Reset</button>
         </div>
 
         <div class="divider"></div>
@@ -602,26 +632,19 @@
         <div class="card">
             <div class="limit-row">
                 <div class="limit-label">
-                    <span class="icon">&#8596;</span>
-                    Max Horizontal
+                    Max Horizontal:
                     <button class="help-btn" onclick="showAlert('Max Horizontal Resolution', 'Maximum horizontal resolution you will be able to get out of the computer based on the specs selected above. Connector, Computer Model, M-Chip, OS, Connector capacity & Better Display all impact the maximum Horizontal resolution allowed.')">&#9432;</button>
                 </div>
                 <div class="limit-value" id="maxHorizontal">6144</div>
             </div>
             <div class="card-divider"></div>
             <div class="limit-row">
-                <div class="limit-label">
-                    <span class="icon">&#9201;</span>
-                    Pixel Clock
-                </div>
+                <div class="limit-label">Pixel Clock:</div>
                 <div class="limit-value" id="maxPixelClock">660 MHz</div>
             </div>
             <div class="card-divider"></div>
             <div class="limit-row">
-                <div class="limit-label">
-                    <span class="icon">&#128250;</span>
-                    Max Displays
-                </div>
+                <div class="limit-label">Max Displays:</div>
                 <div class="limit-value" id="maxDisplays">1</div>
             </div>
         </div>
@@ -665,6 +688,15 @@
                     <option value="8 Bit" selected>8 Bit</option>
                     <option value="10 Bit">10 Bit</option>
                     <option value="12 Bit">12 Bit</option>
+                </select>
+            </div>
+
+            <!-- Chroma Subsampling -->
+            <div class="row">
+                <div class="row-label">Chroma Subsampling:</div>
+                <select id="chromaSubsampling" onchange="onChromaChange()">
+                    <option value="4:4:4" selected>4:4:4</option>
+                    <option value="4:2:2">4:2:2</option>
                 </select>
             </div>
 
@@ -761,7 +793,7 @@
         <div class="footer">
             By: Phillip Rude<br>
             Omniconpro.com<br>
-            <span id="versionString">v1.09.04</span>
+            <span id="versionString">V1.10.0</span>
         </div>
 
         <div class="disclaimer">
@@ -876,66 +908,166 @@
             "M4", "M4 PRO", "M4 MAX",
             "M5"
         ];
-        const macOSOptions = ["Monterey", "Ventura", "Sonoma", "Sequoia", "Tahoe"];
+        const macOSOptions = ["Monterey - 12", "Ventura - 13", "Sonoma - 14", "Sequoia - 15", "Tahoe - 26"];
         const capacityOptions = ["SL", "DL", "4K"];
         const reducedBlankingOptions = ["RB V1", "RB V2"];
         const frameRateOptions = ["23.98", "24", "25", "29.97", "30", "50", "59.94", "60"];
         const bitRateOptions = ["8 Bit", "10 Bit", "12 Bit"];
 
+        // Computer -> Processor compatibility map
+        const computerProcessorMap = {
+            "MacBookPro": ["M1", "M1 PRO", "M1 MAX", "M2", "M2 PRO", "M2 MAX", "M3", "M3 PRO", "M3 MAX", "M4", "M4 PRO", "M4 MAX", "M5"],
+            "MacStudio": ["M1 MAX", "M1 ULTRA", "M2 MAX", "M2 ULTRA", "M3 ULTRA", "M4 MAX"],
+            "MacPro": ["M2 ULTRA"],
+            "MacMini": ["M1", "M2", "M2 PRO", "M4", "M4 PRO"]
+        };
+
+        // Processor -> macOS compatibility (by processor prefix)
+        const processorMacOSMap = {
+            "M1": ["Monterey - 12", "Ventura - 13", "Sonoma - 14", "Sequoia - 15", "Tahoe - 26"],
+            "M2": ["Ventura - 13", "Sonoma - 14", "Sequoia - 15", "Tahoe - 26"],
+            "M3": ["Sonoma - 14", "Sequoia - 15", "Tahoe - 26"],
+            "M4": ["Sequoia - 15", "Tahoe - 26"],
+            "M5": ["Tahoe - 26"]
+        };
+
         // Current state
         let state = {
             connector: "DP 1.2",
-            computer: "MacBookPro",
-            processor: "M1",
-            macos: "Monterey",
+            computer: "",
+            processor: "",
+            macos: "",
             capacity: "4K",
             betterDisplay: false,
             dualDp: false,
             pixelDensityMode: false,
             frameRate: "59.94",
             bitRate: "8 Bit",
+            chromaSubsampling: "4:4:4",
             reducedBlanking: "RB V2",
             edidTimings: null
         };
 
         // ==========================================
-        // FILTERED OPTIONS
+        // BIDIRECTIONAL FILTERING LOGIC
         // ==========================================
 
-        function getFilteredProcessorOptions() {
-            switch (state.computer) {
-                case "MacBookPro":
-                    return [
-                        "M1", "M1 PRO", "M1 MAX",
-                        "M2", "M2 PRO", "M2 MAX",
-                        "M3", "M3 PRO", "M3 MAX",
-                        "M4", "M4 PRO", "M4 MAX",
-                        "M5"
-                    ];
-                case "MacStudio":
-                    return ["M1 MAX", "M1 ULTRA", "M2 MAX", "M2 ULTRA", "M3 ULTRA", "M4 MAX"];
-                case "MacPro":
-                    return ["M2 ULTRA"];
-                case "MacMini":
-                    return ["M1", "M2", "M2 PRO", "M4", "M4 PRO"];
-                default:
-                    return processorOptions;
-            }
+        function getProcessorPrefix(processor) {
+            if (processor.startsWith("M1")) return "M1";
+            if (processor.startsWith("M2")) return "M2";
+            if (processor.startsWith("M3")) return "M3";
+            if (processor.startsWith("M4")) return "M4";
+            if (processor.startsWith("M5")) return "M5";
+            return "";
         }
 
-        function getFilteredMacOSOptions() {
-            if (state.processor.startsWith("M1")) {
-                return macOSOptions;
-            } else if (state.processor.startsWith("M2")) {
-                return macOSOptions.filter(os => os !== "Monterey");
-            } else if (state.processor.startsWith("M3")) {
-                return macOSOptions.filter(os => os !== "Monterey" && os !== "Ventura");
-            } else if (state.processor.startsWith("M4")) {
-                return macOSOptions.filter(os => os === "Sequoia" || os === "Tahoe");
-            } else if (state.processor.startsWith("M5")) {
-                return macOSOptions.filter(os => os === "Tahoe");
+        function getValidComputers() {
+            // If processor is selected, filter by processor
+            if (state.processor) {
+                return computerOptions.filter(computer =>
+                    computerProcessorMap[computer].includes(state.processor)
+                );
             }
-            return macOSOptions;
+
+            // If macOS is selected but no processor, filter to computers that have at least one processor supporting that macOS
+            if (state.macos) {
+                // Get processors that support this macOS
+                const validProcessorsForMacOS = processorOptions.filter(proc => {
+                    const prefix = getProcessorPrefix(proc);
+                    return processorMacOSMap[prefix] && processorMacOSMap[prefix].includes(state.macos);
+                });
+                // Filter computers to those that have at least one of these processors
+                return computerOptions.filter(computer => {
+                    const computerProcessors = computerProcessorMap[computer];
+                    return computerProcessors.some(proc => validProcessorsForMacOS.includes(proc));
+                });
+            }
+
+            // No filters, all computers valid
+            return computerOptions;
+        }
+
+        function getValidProcessors() {
+            let validProcessors = [...processorOptions];
+
+            // Filter by computer if selected
+            if (state.computer) {
+                validProcessors = validProcessors.filter(proc =>
+                    computerProcessorMap[state.computer].includes(proc)
+                );
+            }
+
+            // Filter by macOS if selected
+            if (state.macos) {
+                validProcessors = validProcessors.filter(proc => {
+                    const prefix = getProcessorPrefix(proc);
+                    return processorMacOSMap[prefix] && processorMacOSMap[prefix].includes(state.macos);
+                });
+            }
+
+            return validProcessors;
+        }
+
+        function getValidMacOS() {
+            // If no processor selected, all macOS are valid
+            if (!state.processor) return macOSOptions;
+
+            const prefix = getProcessorPrefix(state.processor);
+            return processorMacOSMap[prefix] || macOSOptions;
+        }
+
+        function getValidCapacities() {
+            // All capacities are always valid
+            return capacityOptions;
+        }
+
+        function updateAllDropdowns() {
+            const validComputers = getValidComputers();
+            const validProcessors = getValidProcessors();
+            const validMacOS = getValidMacOS();
+            const validCapacities = getValidCapacities();
+
+            // Update Computer dropdown
+            const computerSelect = document.getElementById('computer');
+            Array.from(computerSelect.options).forEach(option => {
+                if (option.value === "") return; // Skip placeholder
+                option.disabled = !validComputers.includes(option.value);
+            });
+
+            // Update Processor dropdown
+            const processorSelect = document.getElementById('processor');
+            // Clear and rebuild processor options
+            processorSelect.innerHTML = '<option value="">-- Select --</option>';
+            processorOptions.forEach(proc => {
+                const opt = document.createElement('option');
+                opt.value = proc;
+                opt.textContent = proc;
+                opt.disabled = !validProcessors.includes(proc);
+                if (proc === state.processor) opt.selected = true;
+                processorSelect.appendChild(opt);
+            });
+
+            // Update macOS dropdown
+            const macosSelect = document.getElementById('macos');
+            macosSelect.innerHTML = '<option value="">-- Select --</option>';
+            macOSOptions.forEach(os => {
+                const opt = document.createElement('option');
+                opt.value = os;
+                opt.textContent = os;
+                opt.disabled = !validMacOS.includes(os);
+                if (os === state.macos) opt.selected = true;
+                macosSelect.appendChild(opt);
+            });
+
+            // Update Capacity dropdown
+            const capacitySelect = document.getElementById('capacity');
+            Array.from(capacitySelect.options).forEach(option => {
+                if (option.value === "") return; // Skip placeholder
+                option.disabled = !validCapacities.includes(option.value);
+            });
+
+            // Update Better Display state
+            updateBetterDisplayState();
         }
 
         function getMaxSupportedDisplays() {
@@ -1017,25 +1149,39 @@
         function computeMaxPixelClock() {
             let baseClock;
 
-            let bitsPerComponent;
-            switch (state.bitRate) {
-                case "8 Bit": bitsPerComponent = 8; break;
-                case "10 Bit": bitsPerComponent = 10; break;
-                case "12 Bit": bitsPerComponent = 12; break;
-                default: bitsPerComponent = 8;
-            }
-
             switch (state.connector) {
                 case "DP 1.2":
-                    // Always use 4:4:4: RGB or YCbCr 4:4:4 = 3 color components
-                    const bitsPerPixel = 3.0 * bitsPerComponent;
-                    // 15.84 Gbps = 15840 Mbps (limited from 17.28 Gbps to achieve 660 MHz at 8-bit)
-                    const baseDataRate = state.dualDp ? 31680.0 : 15840.0;
-                    baseClock = Math.floor(baseDataRate / bitsPerPixel);
+                    // Base 4K value is fixed at 660 MHz
+                    let base4K = 660;
+
+                    // Apply capacity multiplier: 4K=100%, DL=50%, SL=25%
+                    let capacityMultiplier;
+                    switch (state.capacity) {
+                        case "SL": capacityMultiplier = 0.25; break;
+                        case "DL": capacityMultiplier = 0.50; break;
+                        default: capacityMultiplier = 1.0; // 4K or no selection
+                    }
+
+                    baseClock = Math.floor(base4K * capacityMultiplier);
+
+                    // Double for Dual DP mode
+                    if (state.dualDp) {
+                        baseClock *= 2;
+                    }
                     break;
                 case "HDMI 2.0":
-                    // HDMI 2.0: 600 MHz TMDS clock limit
-                    baseClock = 600;
+                    // HDMI 2.0: 600 MHz TMDS clock limit at 4K
+                    let baseHDMI = 600;
+
+                    // Apply capacity multiplier: 4K=100%, DL=50%, SL=25%
+                    let hdmiCapacityMultiplier;
+                    switch (state.capacity) {
+                        case "SL": hdmiCapacityMultiplier = 0.25; break;
+                        case "DL": hdmiCapacityMultiplier = 0.50; break;
+                        default: hdmiCapacityMultiplier = 1.0; // 4K or no selection
+                    }
+
+                    baseClock = Math.floor(baseHDMI * hdmiCapacityMultiplier);
                     break;
                 default:
                     baseClock = 0;
@@ -1081,8 +1227,9 @@
         }
 
         function getDefaultMaxRes(processor, macOS, betterDisplay) {
+            if (!processor) return 6144;
             if (processor.startsWith("M1")) {
-                return macOS === "Monterey" ? 8192 : 6144;
+                return (macOS && macOS.startsWith("Monterey")) ? 8192 : 6144;
             } else if (processor.startsWith("M2") || processor.startsWith("M3") ||
                        processor.startsWith("M4") || processor.startsWith("M5")) {
                 return betterDisplay ? 7680 : 6144;
@@ -1254,10 +1401,21 @@
 
                 let exceedsLimit = false;
 
+                // Chroma subsampling multiplier: 4:4:4 = 1.0, 4:2:2 = 2/3
+                const chromaMultiplier = state.chromaSubsampling === "4:2:2" ? (2/3) : 1.0;
+
                 if (state.connector.startsWith("DP")) {
-                    exceedsLimit = pixelClock > maxLimit;
+                    // For DP, scale pixel clock by bit depth ratio (relative to 8-bit baseline)
+                    let dpBitMultiplier;
+                    switch (state.bitRate) {
+                        case "8 Bit": dpBitMultiplier = 1.0; break;
+                        case "10 Bit": dpBitMultiplier = 10 / 8; break;  // 1.25
+                        case "12 Bit": dpBitMultiplier = 12 / 8; break;  // 1.5
+                        default: dpBitMultiplier = 1.0;
+                    }
+                    exceedsLimit = (pixelClock * dpBitMultiplier * chromaMultiplier) > maxLimit;
                 } else {
-                    const tmdsClk = pixelClock * getBandwidthMultiplier();
+                    const tmdsClk = pixelClock * getBandwidthMultiplier() * chromaMultiplier;
                     exceedsLimit = tmdsClk > maxLimit;
                 }
 
@@ -1353,10 +1511,22 @@
             // Calculate pixel/TMDS clock for display
             const pcMHz = computePixelClock(candidateW, candidateH, fr, blanking);
             let displayClock;
+
+            // Chroma subsampling multiplier: 4:4:4 = 1.0, 4:2:2 = 2/3
+            const chromaMultiplier = state.chromaSubsampling === "4:2:2" ? (2/3) : 1.0;
+
             if (state.connector.startsWith("DP")) {
-                displayClock = pcMHz;
+                // For DP, apply bit depth multiplier to show effective bandwidth usage
+                let dpBitMultiplier;
+                switch (state.bitRate) {
+                    case "8 Bit": dpBitMultiplier = 1.0; break;
+                    case "10 Bit": dpBitMultiplier = 10 / 8; break;  // 1.25
+                    case "12 Bit": dpBitMultiplier = 12 / 8; break;  // 1.5
+                    default: dpBitMultiplier = 1.0;
+                }
+                displayClock = pcMHz * dpBitMultiplier * chromaMultiplier;
             } else {
-                displayClock = pcMHz * getBandwidthMultiplier();
+                displayClock = pcMHz * getBandwidthMultiplier() * chromaMultiplier;
             }
             const scaledPixelClock = displayClock.toFixed(2) + " MHz";
 
@@ -1444,49 +1614,11 @@
             document.getElementById('maxDisplays').textContent = getMaxSupportedDisplays();
         }
 
-        function updateProcessorOptions() {
-            const processorSelect = document.getElementById('processor');
-            const filteredOptions = getFilteredProcessorOptions();
-
-            processorSelect.innerHTML = '';
-            filteredOptions.forEach(option => {
-                const opt = document.createElement('option');
-                opt.value = option;
-                opt.textContent = option;
-                processorSelect.appendChild(opt);
-            });
-
-            // If current processor is not in filtered options, select first one
-            if (!filteredOptions.includes(state.processor)) {
-                state.processor = filteredOptions[0];
-            }
-            processorSelect.value = state.processor;
-        }
-
-        function updateMacOSOptions() {
-            const macosSelect = document.getElementById('macos');
-            const filteredOptions = getFilteredMacOSOptions();
-
-            macosSelect.innerHTML = '';
-            filteredOptions.forEach(option => {
-                const opt = document.createElement('option');
-                opt.value = option;
-                opt.textContent = option;
-                macosSelect.appendChild(opt);
-            });
-
-            // If current macOS is not in filtered options, select first one
-            if (!filteredOptions.includes(state.macos)) {
-                state.macos = filteredOptions[0];
-            }
-            macosSelect.value = state.macos;
-        }
-
         function updateBetterDisplayState() {
             const betterDisplayCheckbox = document.getElementById('betterDisplay');
             const warningEl = document.getElementById('betterDisplayWarning');
 
-            if (state.processor.startsWith("M1")) {
+            if (state.processor && state.processor.startsWith("M1")) {
                 betterDisplayCheckbox.disabled = true;
                 betterDisplayCheckbox.checked = false;
                 state.betterDisplay = false;
@@ -1525,23 +1657,59 @@
 
         function onComputerChange() {
             state.computer = document.getElementById('computer').value;
-            updateProcessorOptions();
-            updateMacOSOptions();
-            updateBetterDisplayState();
+            // Clear processor if it's no longer valid
+            if (state.processor && state.computer) {
+                const validProcessors = computerProcessorMap[state.computer];
+                if (!validProcessors.includes(state.processor)) {
+                    state.processor = "";
+                    state.macos = ""; // Also clear macOS if processor was cleared
+                }
+            }
+            updateAllDropdowns();
             clearResults();
             updateLimits();
         }
 
         function onProcessorChange() {
             state.processor = document.getElementById('processor').value;
-            updateMacOSOptions();
-            updateBetterDisplayState();
+            // Clear computer if it's no longer valid
+            if (state.processor && state.computer) {
+                const validComputers = getValidComputers();
+                if (!validComputers.includes(state.computer)) {
+                    state.computer = "";
+                    document.getElementById('computer').value = "";
+                }
+            }
+            // Clear macOS if it's no longer valid
+            if (state.processor && state.macos) {
+                const validMacOS = getValidMacOS();
+                if (!validMacOS.includes(state.macos)) {
+                    state.macos = "";
+                }
+            }
+            updateAllDropdowns();
             clearResults();
             updateLimits();
         }
 
         function onMacOSChange() {
             state.macos = document.getElementById('macos').value;
+            // Clear processor if it's no longer valid with selected macOS
+            if (state.macos && state.processor) {
+                const validProcessors = getValidProcessors();
+                if (!validProcessors.includes(state.processor)) {
+                    state.processor = "";
+                }
+            }
+            // Check if computer is still valid (even if no processor selected)
+            if (state.macos && state.computer) {
+                const validComputers = getValidComputers();
+                if (!validComputers.includes(state.computer)) {
+                    state.computer = "";
+                    document.getElementById('computer').value = "";
+                }
+            }
+            updateAllDropdowns();
             clearResults();
             updateLimits();
         }
@@ -1578,6 +1746,11 @@
             updateLimits();
         }
 
+        function onChromaChange() {
+            state.chromaSubsampling = document.getElementById('chromaSubsampling').value;
+            clearResults();
+        }
+
         function onPixelDensityModeChange() {
             state.pixelDensityMode = document.getElementById('pixelDensityMode').checked;
             const maxVerticalInput = document.getElementById('maxVertical');
@@ -1589,6 +1762,25 @@
                 maxVerticalInput.value = '';
             }
             clearResults();
+        }
+
+        function resetSystemConfig() {
+            // Reset state
+            state.computer = "";
+            state.processor = "";
+            state.macos = "";
+            state.capacity = "4K";
+            state.betterDisplay = false;
+
+            // Reset UI elements
+            document.getElementById('computer').value = "";
+            document.getElementById('capacity').value = "4K";
+            document.getElementById('betterDisplay').checked = false;
+
+            // Update all dropdowns (this will rebuild processor and macos dropdowns)
+            updateAllDropdowns();
+            clearResults();
+            updateLimits();
         }
 
         // ==========================================
@@ -1668,9 +1860,7 @@
         // ==========================================
 
         function init() {
-            updateProcessorOptions();
-            updateMacOSOptions();
-            updateBetterDisplayState();
+            updateAllDropdowns();
             updateDualDpState();
             updateLimits();
 
