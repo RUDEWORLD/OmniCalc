@@ -1001,7 +1001,7 @@
         <div class="footer">
             By: Phillip Rude<br>
             Omniconpro.com<br>
-            <span id="versionString">V1.11.6</span><br>
+            <span id="versionString">V1.11.7</span><br>
             UPDATED: 01/17/26
         </div>
 
@@ -2201,41 +2201,22 @@
                         // In iframe - open new window with download link
                         const newWindow = window.open('', '_blank');
                         if (newWindow) {
-                            newWindow.document.write(`
-                                <!DOCTYPE html>
-                                <html>
-                                <head>
-                                    <title>Download ${filename}</title>
-                                    <style>
-                                        body { font-family: -apple-system, sans-serif; background: #1a2744; color: white;
-                                               display: flex; flex-direction: column; align-items: center;
-                                               justify-content: center; min-height: 100vh; margin: 0; padding: 20px; text-align: center; }
-                                        img { max-width: 90%; max-height: 50vh; border-radius: 10px; margin-bottom: 20px; }
-                                        button { background: linear-gradient(90deg, rgb(220, 130, 70), rgb(240, 150, 90));
-                                            color: white; padding: 15px 30px; border-radius: 10px; border: none;
-                                            font-weight: 600; font-size: 16px; margin-top: 20px; cursor: pointer; }
-                                        button:hover { opacity: 0.9; }
-                                        p { color: rgba(255,255,255,0.7); margin-top: 15px; }
-                                    </style>
-                                </head>
-                                <body>
-                                    <h2>Your image is ready</h2>
-                                    <img src="${imageData}" alt="Export">
-                                    <button id="dlBtn">Download Image</button>
-                                    <p>Click the button to download, or right-click the image and choose "Save Image As".</p>
-                                    <scr` + `ipt>
-                                        document.getElementById('dlBtn').onclick = function() {
-                                            var link = document.createElement('a');
-                                            link.href = '${imageData}';
-                                            link.download = '${filename}';
-                                            document.body.appendChild(link);
-                                            link.click();
-                                            document.body.removeChild(link);
-                                        };
-                                    </scr` + `ipt>
-                                </body>
-                                </html>
-                            `);
+                            newWindow.document.write(
+                                '<!DOCTYPE html><html><head><title>Download</title>' +
+                                '<style>body{font-family:-apple-system,sans-serif;background:#1a2744;color:white;' +
+                                'display:flex;flex-direction:column;align-items:center;justify-content:center;' +
+                                'min-height:100vh;margin:0;padding:20px;text-align:center}' +
+                                'img{max-width:90%;max-height:50vh;border-radius:10px;margin-bottom:20px}' +
+                                'a{background:linear-gradient(90deg,rgb(220,130,70),rgb(240,150,90));' +
+                                'color:white;padding:15px 30px;border-radius:10px;text-decoration:none;' +
+                                'font-weight:600;font-size:16px;margin-top:20px;display:inline-block}' +
+                                'a:hover{opacity:0.9}p{color:rgba(255,255,255,0.7);margin-top:15px}</style></head>' +
+                                '<body><h2>Your image is ready</h2>' +
+                                '<img src="' + imageData + '" alt="Export">' +
+                                '<a href="' + imageData + '" download="' + filename + '">Download Image</a>' +
+                                '<p>Click the button to download, or right-click the image to save.</p>' +
+                                '</body></html>'
+                            );
                             newWindow.document.close();
                         } else {
                             showAlert('Download Blocked', 'Please allow pop-ups for this site to download files.');
@@ -2398,39 +2379,20 @@
                 if (isInIframe()) {
                     const newWindow = window.open('', '_blank');
                     if (newWindow) {
-                        newWindow.document.write(`
-                            <!DOCTYPE html>
-                            <html>
-                            <head>
-                                <title>Download ${filename}</title>
-                                <style>
-                                    body { font-family: -apple-system, sans-serif; background: #1a2744; color: white;
-                                           display: flex; flex-direction: column; align-items: center;
-                                           justify-content: center; min-height: 100vh; margin: 0; padding: 20px; text-align: center; }
-                                    button { background: linear-gradient(90deg, rgb(220, 130, 70), rgb(240, 150, 90));
-                                        color: white; padding: 15px 30px; border-radius: 10px; border: none;
-                                        font-weight: 600; font-size: 16px; margin-top: 20px; cursor: pointer; }
-                                    button:hover { opacity: 0.9; }
-                                    p { color: rgba(255,255,255,0.7); margin-top: 15px; }
-                                </style>
-                            </head>
-                            <body>
-                                <h2>Your file is ready</h2>
-                                <button id="dlBtn">Download ${filename}</button>
-                                <p>Click the button above to download your file.</p>
-                                <scr` + `ipt>
-                                    document.getElementById('dlBtn').onclick = function() {
-                                        var link = document.createElement('a');
-                                        link.href = '${dataUrl}';
-                                        link.download = '${filename}';
-                                        document.body.appendChild(link);
-                                        link.click();
-                                        document.body.removeChild(link);
-                                    };
-                                </scr` + `ipt>
-                            </body>
-                            </html>
-                        `);
+                        newWindow.document.write(
+                            '<!DOCTYPE html><html><head><title>Download</title>' +
+                            '<style>body{font-family:-apple-system,sans-serif;background:#1a2744;color:white;' +
+                            'display:flex;flex-direction:column;align-items:center;justify-content:center;' +
+                            'min-height:100vh;margin:0;padding:20px;text-align:center}' +
+                            'a{background:linear-gradient(90deg,rgb(220,130,70),rgb(240,150,90));' +
+                            'color:white;padding:15px 30px;border-radius:10px;text-decoration:none;' +
+                            'font-weight:600;font-size:16px;margin-top:20px;display:inline-block}' +
+                            'a:hover{opacity:0.9}p{color:rgba(255,255,255,0.7);margin-top:15px}</style></head>' +
+                            '<body><h2>Your file is ready</h2>' +
+                            '<a href="' + dataUrl + '" download="' + filename + '">Download ' + filename + '</a>' +
+                            '<p>Click the button above to download your file.</p>' +
+                            '</body></html>'
+                        );
                         newWindow.document.close();
                     } else {
                         showAlert('Download Blocked', 'Please allow pop-ups for this site to download files.');
